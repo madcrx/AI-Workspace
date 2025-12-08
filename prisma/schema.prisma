@@ -1,0 +1,165 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String     @id @default(cuid())
+  email         String     @unique
+  name          String?
+  password      String
+  role          String     @default("USER")
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  workspaces    Workspace[]
+  toolSubmissions ToolSubmission[]
+  reviews       Review[]
+  credentials   ToolCredential[]
+  image         String?
+}
+
+model Workspace {
+  id            String     @id @default(cuid())
+  userId        String
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name          String     @default("My Workspace")
+  layout        String     @default("grid") // grid, list, custom
+  theme         String     @default("light") // light, dark, custom
+  customStyles  String?    @default("{}")   // JSON for custom CSS
+  isDefault     Boolean    @default(false)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  tools         WorkspaceTool[]
+}
+
+model WorkspaceTool {
+  id            String     @id @default(cuid())
+  workspaceId   String
+  workspace     Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  toolId        String
+  tool          Tool       @relation(fields: [toolId], references: [id], onDelete: Cascade)
+  position      Int        @default(0)
+  gridX         Int        @default(0)
+  gridY         Int        @default(0)
+  width         Int        @default(1)
+  height        Int        @default(1)
+  customConfig  String?    @default("{}")   // JSON for tool-specific settings
+  createdAt     DateTime   @default(now())
+
+  @@unique([workspaceId, toolId])
+}
+
+model Tool {
+  id            String     @id @default(cuid())
+  name          String
+  slug          String     @unique
+  description   String
+  longDescription String?
+  category      String
+  subcategory   String?
+  websiteUrl    String
+  loginUrl      String?
+  logoUrl       String?
+  screenshots   String?    @default("[]")  // JSON array
+  pricing       String     @default("FREE")
+  pricingDetails String?
+  features      String?    @default("[]")  // JSON array
+  tags          String?    @default("[]")  // JSON array
+  isActive      Boolean    @default(false)
+  isFeatured    Boolean    @default(false)
+  views         Int        @default(0)
+  clicks        Int        @default(0)
+  rating        Float?     @default(0)
+  reviewCount   Int        @default(0)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  lastScraped   DateTime?
+  scrapedData   String?    @default("{}")  // JSON for scraped metadata
+  workspaceTools WorkspaceTool[]
+  submissions   ToolSubmission[]
+  reviews       Review[]
+  credentials   ToolCredential[]
+}
+
+model ToolSubmission {
+  id            String     @id @default(cuid())
+  userId        String
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  toolId        String?
+  tool          Tool?      @relation(fields: [toolId], references: [id], onDelete: SetNull)
+  status        String     @default("PENDING")
+  name          String
+  description   String
+  websiteUrl    String
+  category      String
+  pricing       String
+  submissionData String    @default("{}")  // JSON for all submission details
+  reviewNotes   String?
+  reviewedAt    DateTime?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+}
+
+model Advertisement {
+  id            String     @id @default(cuid())
+  title         String
+  description   String?
+  imageUrl      String
+  linkUrl       String
+  placement     String     @default("SIDEBAR")
+  isActive      Boolean    @default(true)
+  startDate     DateTime   @default(now())
+  endDate       DateTime?
+  impressions   Int        @default(0)
+  clicks        Int        @default(0)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+}
+
+model Category {
+  id            String     @id @default(cuid())
+  name          String     @unique
+  slug          String     @unique
+  description   String?
+  icon          String?
+  order         Int        @default(0)
+  createdAt     DateTime   @default(now())
+}
+
+model Review {
+  id            String     @id @default(cuid())
+  userId        String
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  toolId        String
+  tool          Tool       @relation(fields: [toolId], references: [id], onDelete: Cascade)
+  rating        Int        // 1-5 stars
+  comment       String?
+  pros          String?
+  cons          String?
+  isVerified    Boolean    @default(false)
+  helpfulCount  Int        @default(0)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  @@unique([userId, toolId])
+}
+
+model ToolCredential {
+  id            String     @id @default(cuid())
+  userId        String
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  toolId        String
+  tool          Tool       @relation(fields: [toolId], references: [id], onDelete: Cascade)
+  username      String
+  encryptedPassword String
+  encryptionIv  String
+  notes         String?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  @@unique([userId, toolId])
+}
