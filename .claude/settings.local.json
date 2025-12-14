@@ -10,8 +10,6 @@
       "Bash(curl:*)",
       "Bash(taskkill:*)",
       "Bash(cat:*)",
-      "Bash(python remove_duplicates.py:*)",
-      "Bash(python clean_seed.py:*)",
       "Bash(npx prisma migrate:*)",
       "Bash(npx tsc:*)",
       "Bash(git init:*)",
