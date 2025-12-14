@@ -2,6 +2,8 @@
 
 A comprehensive AI tools workspace platform built with Next.js, featuring a Zendesk-style customizable interface where users can discover, organize, and access AI tools in their personalized workspace.
 
+> 🚀 **Looking to deploy?** This is a full-stack application that requires server-side functionality. See the [Production Deployment](#production-deployment) section for instructions on deploying to Vercel (free tier available). **GitHub Pages is not supported** as it only serves static files.
+
 ## Features
 
 ### Core Functionality
@@ -197,19 +199,130 @@ The platform is designed to be extensible. Key areas for enhancement:
 
 ## Production Deployment
 
-### Environment Variables
-Ensure you set these for production:
+> ⚠️ **Important**: This is a full-stack Next.js application with authentication, API routes, and database. It **CANNOT** be deployed to GitHub Pages, which only serves static files.
+
+### Recommended: Deploy to Vercel (Free Tier Available)
+
+Vercel is the creator of Next.js and provides the best hosting experience with zero configuration.
+
+#### Quick Deploy to Vercel
+
+1. **Push your code to GitHub** (already done!)
+
+2. **Sign up for Vercel**
+   - Go to [vercel.com](https://vercel.com)
+   - Sign up with your GitHub account (free)
+
+3. **Import your repository**
+   - Click "Add New Project"
+   - Select your `madcrx/AI-Workspace` repository
+   - Click "Import"
+
+4. **Configure Environment Variables**
+
+   Add these in the Vercel dashboard during setup:
+
+   ```
+   DATABASE_URL=file:./prisma/dev.db
+   NEXTAUTH_SECRET=your-secure-random-string-here
+   NEXTAUTH_URL=https://your-project-name.vercel.app
+   ```
+
+   **Generate a secure NEXTAUTH_SECRET:**
+   ```bash
+   openssl rand -base64 32
+   ```
+
+5. **Deploy**
+   - Click "Deploy"
+   - Vercel will automatically build and deploy your app
+   - Your app will be live at `https://your-project-name.vercel.app`
+
+6. **Initialize Database**
+
+   After first deployment, run the seed command:
+   - Go to your Vercel project dashboard
+   - Navigate to Settings > Functions
+   - Or use Vercel CLI:
+   ```bash
+   npm i -g vercel
+   vercel login
+   vercel link
+   vercel env pull
+   npm run db:seed
+   ```
+
+#### For Production Database (Recommended)
+
+For a production app, upgrade from SQLite to PostgreSQL:
+
+1. **Get a PostgreSQL database** (Free options):
+   - [Vercel Postgres](https://vercel.com/docs/storage/vercel-postgres) (Free tier)
+   - [Neon](https://neon.tech) (Free tier)
+   - [Supabase](https://supabase.com) (Free tier)
+
+2. **Update your database configuration**:
+
+   In `prisma/schema.prisma`, change:
+   ```prisma
+   datasource db {
+     provider = "postgresql"  // Changed from sqlite
+     url      = env("DATABASE_URL")
+   }
+   ```
+
+3. **Update environment variable** in Vercel:
+   ```
+   DATABASE_URL=postgresql://user:password@host:5432/database
+   ```
+
+4. **Deploy and migrate**:
+   ```bash
+   git add .
+   git commit -m "Switch to PostgreSQL"
+   git push
+   # Vercel will auto-deploy
+   ```
+
+### Alternative Deployment Options
+
+#### Option 2: Netlify
+1. Connect your GitHub repo to Netlify
+2. Set build command: `npm run build`
+3. Set publish directory: `.next`
+4. Add environment variables
+5. Deploy
+
+#### Option 3: Railway
+1. Go to [railway.app](https://railway.app)
+2. "New Project" → "Deploy from GitHub repo"
+3. Select your repository
+4. Add environment variables
+5. Railway auto-detects Next.js and deploys
+
+#### Option 4: Self-Hosted VPS
+If you have your own server:
+```bash
+npm run build
+npm start
+# Use PM2 or systemd to keep it running
 ```
+
+### Environment Variables for Production
+
+Required variables:
+```env
 DATABASE_URL="your-production-database-url"
 NEXTAUTH_SECRET="secure-random-string"
 NEXTAUTH_URL="https://yourdomain.com"
 ```
 
-### Database
-For production, consider migrating from SQLite to PostgreSQL:
-1. Update `prisma/schema.prisma` datasource to postgresql
-2. Update DATABASE_URL in .env
-3. Run migrations: `npm run db:push`
+### Post-Deployment
+
+1. **Change admin password** immediately after first login
+2. **Set up custom domain** in Vercel/Netlify settings
+3. **Enable HTTPS** (automatic on Vercel/Netlify)
+4. **Monitor your app** using Vercel Analytics or similar
 
 ### Build
 ```bash
