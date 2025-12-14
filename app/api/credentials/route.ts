@@ -12,7 +12,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { toolId, username, password, notes } = await req.json();
+    const { toolId, username, password, customLoginUrl, notes } = await req.json();
 
     if (!toolId || !username || !password) {
       return NextResponse.json(
@@ -36,6 +36,7 @@ export async function POST(req: Request) {
         username,
         encryptedPassword,
         encryptionIv: iv,
+        customLoginUrl: customLoginUrl || null,
         notes: notes || null,
       },
       create: {
@@ -44,6 +45,7 @@ export async function POST(req: Request) {
         username,
         encryptedPassword,
         encryptionIv: iv,
+        customLoginUrl: customLoginUrl || null,
         notes: notes || null,
       },
       include: {
@@ -104,6 +106,7 @@ export async function GET(req: Request) {
         id: cred.id,
         toolId: cred.toolId,
         username: cred.username,
+        customLoginUrl: cred.customLoginUrl,
         notes: cred.notes,
         toolName: cred.tool.name,
         loginUrl: cred.tool.loginUrl,

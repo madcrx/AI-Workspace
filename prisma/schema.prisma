@@ -13,10 +13,12 @@ model User {
   name          String?
   password      String
   role          String     @default("USER")
+  isActive      Boolean    @default(true)
+  resetToken    String?
+  resetTokenExpiry DateTime?
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
   workspaces    Workspace[]
-  toolSubmissions ToolSubmission[]
   reviews       Review[]
   credentials   ToolCredential[]
   image         String?
@@ -80,44 +82,8 @@ model Tool {
   lastScraped   DateTime?
   scrapedData   String?    @default("{}")  // JSON for scraped metadata
   workspaceTools WorkspaceTool[]
-  submissions   ToolSubmission[]
   reviews       Review[]
   credentials   ToolCredential[]
-}
-
-model ToolSubmission {
-  id            String     @id @default(cuid())
-  userId        String
-  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  toolId        String?
-  tool          Tool?      @relation(fields: [toolId], references: [id], onDelete: SetNull)
-  status        String     @default("PENDING")
-  name          String
-  description   String
-  websiteUrl    String
-  category      String
-  pricing       String
-  submissionData String    @default("{}")  // JSON for all submission details
-  reviewNotes   String?
-  reviewedAt    DateTime?
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
-}
-
-model Advertisement {
-  id            String     @id @default(cuid())
-  title         String
-  description   String?
-  imageUrl      String
-  linkUrl       String
-  placement     String     @default("SIDEBAR")
-  isActive      Boolean    @default(true)
-  startDate     DateTime   @default(now())
-  endDate       DateTime?
-  impressions   Int        @default(0)
-  clicks        Int        @default(0)
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
 }
 
 model Category {
@@ -157,9 +123,54 @@ model ToolCredential {
   username      String
   encryptedPassword String
   encryptionIv  String
+  customLoginUrl String?
   notes         String?
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
 
   @@unique([userId, toolId])
+}
+
+model FeatureRequest {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  category    String
+  useCase     String?
+  priority    String   @default("MEDIUM")
+  email       String?
+  status      String   @default("PENDING")
+  votes       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ToolUpdateRequest {
+  id            String   @id @default(cuid())
+  toolId        String
+  updateType    String
+  currentValue  String?
+  newValue      String
+  reason        String
+  email         String?
+  status        String   @default("PENDING")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model AdvertisingRequest {
+  id              String   @id @default(cuid())
+  companyName     String
+  contactName     String
+  email           String
+  phone           String?
+  website         String?
+  advertisingType String
+  budget          String
+  duration        String
+  targetAudience  String?
+  message         String
+  status          String   @default("PENDING")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }

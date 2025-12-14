@@ -15,7 +15,14 @@
       "Bash(npx prisma migrate:*)",
       "Bash(npx tsc:*)",
       "Bash(git init:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git remote add:*)",
+      "Bash(git branch:*)",
+      "Bash(git push:*)",
+      "Bash(if exist .next rmdir /s /q .next)",
+      "Bash(rm:*)",
+      "Bash(timeout 5 bash:*)"
     ],
     "deny": [],
     "ask": []

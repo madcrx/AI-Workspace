@@ -16,6 +16,7 @@ interface Credential {
   id: string;
   toolId: string;
   username: string;
+  customLoginUrl?: string;
   notes?: string;
   toolName: string;
   loginUrl?: string;
@@ -39,6 +40,7 @@ export default function CredentialsPage() {
   const [selectedToolId, setSelectedToolId] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [customLoginUrl, setCustomLoginUrl] = useState('');
   const [notes, setNotes] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -68,13 +70,11 @@ export default function CredentialsPage() {
     try {
       const response = await fetch('/api/tools');
       const data = await response.json();
-      // Filter tools that have a loginUrl
-      const loginTools = Array.isArray(data)
-        ? data.filter((t: any) => t.loginUrl && t.loginUrl !== '')
-        : [];
-      setTools(loginTools);
+      // Show all tools - users can add credentials for any tool
+      setTools(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching tools:', error);
+      setTools([]);
     }
   };
 
@@ -93,6 +93,7 @@ export default function CredentialsPage() {
           toolId: selectedToolId,
           username,
           password,
+          customLoginUrl,
           notes,
         }),
       });
@@ -102,6 +103,7 @@ export default function CredentialsPage() {
         setSelectedToolId('');
         setUsername('');
         setPassword('');
+        setCustomLoginUrl('');
         setNotes('');
         fetchCredentials();
       } else {
@@ -245,6 +247,20 @@ export default function CredentialsPage() {
               </div>
 
               <div className="space-y-2">
+                <Label htmlFor="customLoginUrl">Custom Login URL (optional)</Label>
+                <Input
+                  id="customLoginUrl"
+                  type="url"
+                  value={customLoginUrl}
+                  onChange={(e) => setCustomLoginUrl(e.target.value)}
+                  placeholder="https://example.com/login (overrides tool's default)"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Leave blank to use the tool's default login URL
+                </p>
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="notes">Notes (optional)</Label>
                 <Textarea
                   id="notes"
@@ -297,11 +313,11 @@ export default function CredentialsPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      {cred.loginUrl && (
+                      {(cred.customLoginUrl || cred.loginUrl) && (
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => handleAutoLogin(cred.id, cred.loginUrl!)}
+                          onClick={() => handleAutoLogin(cred.id, cred.customLoginUrl || cred.loginUrl!)}
                           className="gap-2"
                         >
                           <ExternalLink className="h-4 w-4" />

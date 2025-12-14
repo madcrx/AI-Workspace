@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ExternalLink, X, GripVertical } from 'lucide-react';
+import { ExternalLink, X, GripVertical, Key } from 'lucide-react';
 
 interface WorkspaceTool {
   id: string;
@@ -18,10 +18,12 @@ interface WorkspaceTool {
     id: string;
     name: string;
     description: string;
+    longDescription?: string;
     category: string;
     websiteUrl: string;
     pricing: string;
     logoUrl?: string;
+    features?: string;
   };
 }
 
@@ -29,10 +31,12 @@ interface WorkspaceGridProps {
   tools: WorkspaceTool[];
   onRemoveTool: (toolId: string) => void;
   onUpdateLayout: (tools: WorkspaceTool[]) => void;
+  userCredentials?: Map<string, any>;
 }
 
-export function WorkspaceGrid({ tools, onRemoveTool, onUpdateLayout }: WorkspaceGridProps) {
+export function WorkspaceGrid({ tools, onRemoveTool, onUpdateLayout, userCredentials }: WorkspaceGridProps) {
   const [draggedTool, setDraggedTool] = useState<string | null>(null);
+  const [expandedTools, setExpandedTools] = useState<Set<string>>(new Set());
 
   const handleDragStart = (e: React.DragEvent, toolId: string) => {
     setDraggedTool(toolId);
@@ -66,6 +70,16 @@ export function WorkspaceGrid({ tools, onRemoveTool, onUpdateLayout }: Workspace
 
     onUpdateLayout(updatedTools);
     setDraggedTool(null);
+  };
+
+  const toggleExpanded = (toolId: string) => {
+    const newExpanded = new Set(expandedTools);
+    if (newExpanded.has(toolId)) {
+      newExpanded.delete(toolId);
+    } else {
+      newExpanded.add(toolId);
+    }
+    setExpandedTools(newExpanded);
   };
 
   const getPricingBadgeColor = (pricing: string) => {
@@ -110,7 +124,7 @@ export function WorkspaceGrid({ tools, onRemoveTool, onUpdateLayout }: Workspace
             className="cursor-move hover:shadow-lg transition-shadow"
           >
             <CardHeader className="pb-2 p-3">
-              <div className="flex items-start justify-between">
+              <div className="flex items-start justify-between gap-2 mb-2">
                 <div className="flex items-center gap-1 flex-1 min-w-0">
                   <GripVertical className="h-3 w-3 text-muted-foreground flex-shrink-0" />
                   {workspaceTool.tool.logoUrl && (
@@ -122,42 +136,101 @@ export function WorkspaceGrid({ tools, onRemoveTool, onUpdateLayout }: Workspace
                       />
                     </div>
                   )}
-                  <div className="min-w-0 flex-1">
-                    <CardTitle className="text-sm truncate">{workspaceTool.tool.name}</CardTitle>
-                    <CardDescription className="text-xs mt-0.5 truncate">
-                      {workspaceTool.tool.category}
-                    </CardDescription>
-                  </div>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-5 w-5 flex-shrink-0"
-                  onClick={() => onRemoveTool(workspaceTool.toolId)}
-                >
-                  <X className="h-3 w-3" />
-                </Button>
+                <div className="flex items-center gap-1">
+                  <Badge className={`text-xs py-0 px-1.5 ${getPricingBadgeColor(workspaceTool.tool.pricing)}`}>
+                    {workspaceTool.tool.pricing}
+                  </Badge>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-5 w-5 flex-shrink-0"
+                    onClick={() => onRemoveTool(workspaceTool.toolId)}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
+              <div className="min-w-0">
+                <CardTitle className="text-sm truncate">{workspaceTool.tool.name}</CardTitle>
+                <CardDescription className="text-xs mt-0.5 truncate">
+                  {workspaceTool.tool.category}
+                </CardDescription>
               </div>
             </CardHeader>
             <CardContent className="space-y-2 p-3 pt-0">
-              <p className="text-xs text-muted-foreground line-clamp-2">
-                {workspaceTool.tool.description}
-              </p>
-              <div className="flex items-center gap-1">
-                <Badge className={`text-xs py-0 px-1.5 ${getPricingBadgeColor(workspaceTool.tool.pricing)}`}>
-                  {workspaceTool.tool.pricing}
-                </Badge>
+              <div className="text-xs text-muted-foreground">
+                <p className={expandedTools.has(workspaceTool.toolId) ? '' : 'line-clamp-2'}>
+                  {workspaceTool.tool.longDescription || workspaceTool.tool.description}
+                </p>
+                {(workspaceTool.tool.longDescription || workspaceTool.tool.description.length > 100) && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleExpanded(workspaceTool.toolId);
+                    }}
+                    className="text-primary hover:underline mt-1"
+                  >
+                    {expandedTools.has(workspaceTool.toolId) ? 'Show less' : 'Show more'}
+                  </button>
+                )}
+                {expandedTools.has(workspaceTool.toolId) && workspaceTool.tool.features && (
+                  <div className="mt-2 pt-2 border-t">
+                    <p className="font-medium mb-1">Features:</p>
+                    <div className="text-xs space-y-1">
+                      {JSON.parse(workspaceTool.tool.features).map((feature: string, idx: number) => (
+                        <div key={idx} className="flex items-start gap-1">
+                          <span>•</span>
+                          <span>{feature}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-              <a
-                href={workspaceTool.tool.websiteUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Button size="sm" className="w-full gap-1 h-7 text-xs">
-                  <ExternalLink className="h-3 w-3" />
-                  Open Tool
-                </Button>
-              </a>
+              {userCredentials?.has(workspaceTool.toolId) ? (
+                <div className="flex gap-1">
+                  <a
+                    href={userCredentials.get(workspaceTool.toolId)?.loginUrl || workspaceTool.tool.websiteUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1"
+                    onClick={() => {
+                      const cred = userCredentials.get(workspaceTool.toolId);
+                      if (cred) {
+                        navigator.clipboard.writeText(`Username: ${cred.username}`);
+                      }
+                    }}
+                  >
+                    <Button size="sm" className="w-full gap-1 h-7 text-xs" variant="default">
+                      <Key className="h-3 w-3" />
+                      Login
+                    </Button>
+                  </a>
+                  <a
+                    href={workspaceTool.tool.websiteUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1"
+                  >
+                    <Button size="sm" className="w-full gap-1 h-7 text-xs" variant="outline">
+                      <ExternalLink className="h-3 w-3" />
+                      Visit
+                    </Button>
+                  </a>
+                </div>
+              ) : (
+                <a
+                  href={workspaceTool.tool.websiteUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Button size="sm" className="w-full gap-1 h-7 text-xs">
+                    <ExternalLink className="h-3 w-3" />
+                    Open Tool
+                  </Button>
+                </a>
+              )}
             </CardContent>
           </Card>
         ))}

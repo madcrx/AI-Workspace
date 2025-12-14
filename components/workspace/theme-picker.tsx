@@ -22,7 +22,7 @@ interface Theme {
   };
 }
 
-const THEMES: Theme[] = [
+export const THEMES: Theme[] = [
   {
     id: 'default',
     name: 'Default',

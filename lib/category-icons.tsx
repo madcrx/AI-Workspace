@@ -1,0 +1,53 @@
+import {
+  MessageSquare,
+  Image,
+  Video,
+  FileText,
+  Code,
+  Music,
+  BarChart,
+  Briefcase,
+  TrendingUp,
+  Palette,
+  Box,
+  Sparkles,
+} from 'lucide-react';
+
+export const CATEGORY_ICONS: { [key: string]: React.ComponentType<{ className?: string }> } = {
+  'AI Assistant': MessageSquare,
+  'AI Assistants': MessageSquare,
+  'Chat': MessageSquare,
+  'Chatbot': MessageSquare,
+  'Image Generation': Image,
+  'Image': Image,
+  'Images': Image,
+  'Video Generation': Video,
+  'Video': Video,
+  'Videos': Video,
+  'Writing': FileText,
+  'Writing & Content': FileText,
+  'Content': FileText,
+  'Code': Code,
+  'Code & Development': Code,
+  'Development': Code,
+  'Programming': Code,
+  'Audio': Music,
+  'Audio & Music': Music,
+  'Music': Music,
+  'Data Analysis': BarChart,
+  'Analytics': BarChart,
+  'Data': BarChart,
+  'Productivity': Briefcase,
+  'Business': Briefcase,
+  'Marketing': TrendingUp,
+  'Marketing & SEO': TrendingUp,
+  'SEO': TrendingUp,
+  'Design': Palette,
+  'Graphic Design': Palette,
+  'Other': Box,
+  'Miscellaneous': Box,
+};
+
+export function getCategoryIcon(categoryName: string): React.ComponentType<{ className?: string }> {
+  return CATEGORY_ICONS[categoryName] || Sparkles;
+}

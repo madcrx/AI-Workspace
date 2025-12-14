@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Users, Wrench, Clock, Eye, MousePointer, Layers, ArrowLeft } from 'lucide-react';
+import { Users, Wrench, Clock, Eye, MousePointer, Layers, ArrowLeft, BarChart3, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
 
 interface Stats {
@@ -20,25 +20,43 @@ interface Stats {
   totalClicks: number;
 }
 
-interface Submission {
+interface User {
+  id: string;
+  email: string;
+  name: string | null;
+  role: string;
+  isActive: boolean;
+  createdAt: string;
+  _count: {
+    workspaces: number;
+    reviews: number;
+  };
+}
+
+interface Tool {
   id: string;
   name: string;
+  slug: string;
   description: string;
   category: string;
+  websiteUrl: string;
+  logoUrl: string | null;
   pricing: string;
-  status: string;
+  isActive: boolean;
+  isFeatured: boolean;
+  views: number;
+  clicks: number;
+  rating: number | null;
+  reviewCount: number;
   createdAt: string;
-  user: {
-    email: string;
-    name: string | null;
-  };
 }
 
 export default function AdminPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [stats, setStats] = useState<Stats | null>(null);
-  const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [tools, setTools] = useState<Tool[]>([]);
   const [loading, setLoading] = useState(true);
   const [scraping, setScraping] = useState(false);
   const [scrapingResult, setScrapingResult] = useState<any>(null);
@@ -59,16 +77,19 @@ export default function AdminPage() {
 
   const fetchData = async () => {
     try {
-      const [statsRes, submissionsRes] = await Promise.all([
+      const [statsRes, usersRes, toolsRes] = await Promise.all([
         fetch('/api/admin/stats'),
-        fetch('/api/admin/submissions'),
+        fetch('/api/admin/users'),
+        fetch('/api/admin/tools'),
       ]);
 
       const statsData = await statsRes.json();
-      const submissionsData = await submissionsRes.json();
+      const usersData = await usersRes.json();
+      const toolsData = await toolsRes.json();
 
       setStats(statsData);
-      setSubmissions(submissionsData);
+      setUsers(usersData);
+      setTools(toolsData);
     } catch (error) {
       console.error('Error fetching admin data:', error);
     } finally {
@@ -76,31 +97,165 @@ export default function AdminPage() {
     }
   };
 
-  const handleApprove = async (submissionId: string) => {
+  const handleRoleChange = async (userId: string, newRole: string) => {
+    if (!confirm(`Are you sure you want to change this user's role to ${newRole}?`)) {
+      return;
+    }
+
     try {
-      await fetch(`/api/admin/submissions/${submissionId}`, {
+      const response = await fetch(`/api/admin/users/${userId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'APPROVED' }),
+        body: JSON.stringify({ role: newRole }),
       });
 
-      fetchData();
+      if (response.ok) {
+        fetchData();
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Failed to update user role');
+      }
     } catch (error) {
-      console.error('Error approving submission:', error);
+      console.error('Error updating user role:', error);
+      alert('Failed to update user role');
     }
   };
 
-  const handleReject = async (submissionId: string) => {
+  const handleDeleteUser = async (userId: string) => {
+    if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+      return;
+    }
+
     try {
-      await fetch(`/api/admin/submissions/${submissionId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'REJECTED', reviewNotes: 'Does not meet criteria' }),
+      const response = await fetch(`/api/admin/users/${userId}`, {
+        method: 'DELETE',
       });
 
-      fetchData();
+      if (response.ok) {
+        fetchData();
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Failed to delete user');
+      }
     } catch (error) {
-      console.error('Error rejecting submission:', error);
+      console.error('Error deleting user:', error);
+      alert('Failed to delete user');
+    }
+  };
+
+  const handleToggleUserActive = async (userId: string, currentStatus: boolean) => {
+    const action = currentStatus ? 'deactivate' : 'activate';
+    if (!confirm(`Are you sure you want to ${action} this user?`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/admin/users/${userId}/activate`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isActive: !currentStatus }),
+      });
+
+      if (response.ok) {
+        fetchData();
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Failed to update user status');
+      }
+    } catch (error) {
+      console.error('Error updating user status:', error);
+      alert('Failed to update user status');
+    }
+  };
+
+  const handleResetPassword = async (userId: string, userEmail: string) => {
+    const newPassword = prompt(`Enter new password for ${userEmail}:\n(Must be at least 6 characters)`);
+
+    if (!newPassword) {
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      alert('Password must be at least 6 characters');
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/admin/users/${userId}/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newPassword }),
+      });
+
+      if (response.ok) {
+        alert('Password reset successfully');
+        fetchData();
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Failed to reset password');
+      }
+    } catch (error) {
+      console.error('Error resetting password:', error);
+      alert('Failed to reset password');
+    }
+  };
+
+  const handleToggleActive = async (toolId: string, isActive: boolean) => {
+    try {
+      const response = await fetch(`/api/admin/tools/${toolId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isActive: !isActive }),
+      });
+
+      if (response.ok) {
+        fetchData();
+      } else {
+        alert('Failed to update tool status');
+      }
+    } catch (error) {
+      console.error('Error updating tool:', error);
+      alert('Failed to update tool status');
+    }
+  };
+
+  const handleToggleFeatured = async (toolId: string, isFeatured: boolean) => {
+    try {
+      const response = await fetch(`/api/admin/tools/${toolId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isFeatured: !isFeatured }),
+      });
+
+      if (response.ok) {
+        fetchData();
+      } else {
+        alert('Failed to update tool featured status');
+      }
+    } catch (error) {
+      console.error('Error updating tool:', error);
+      alert('Failed to update tool featured status');
+    }
+  };
+
+  const handleDeleteTool = async (toolId: string) => {
+    if (!confirm('Are you sure you want to delete this tool? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/admin/tools/${toolId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        fetchData();
+      } else {
+        alert('Failed to delete tool');
+      }
+    } catch (error) {
+      console.error('Error deleting tool:', error);
+      alert('Failed to delete tool');
     }
   };
 
@@ -212,98 +367,103 @@ export default function AdminPage() {
           </div>
         )}
 
-        <Tabs defaultValue="submissions" className="space-y-4">
+        <Tabs defaultValue="users" className="space-y-4">
           <TabsList>
-            <TabsTrigger value="submissions">Submissions</TabsTrigger>
-            <TabsTrigger value="tools">Tools</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
+            <TabsTrigger value="tools">Tools</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="scraper">Scraper</TabsTrigger>
             <TabsTrigger value="images">Images</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="submissions" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Tool Submissions</CardTitle>
-                <CardDescription>
-                  Review and approve tool submissions from developers
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {submissions.length === 0 ? (
-                    <p className="text-muted-foreground text-center py-8">
-                      No submissions to review
-                    </p>
-                  ) : (
-                    submissions.map((submission) => (
-                      <div
-                        key={submission.id}
-                        className="border rounded-lg p-4 space-y-3"
-                      >
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <h3 className="font-semibold">{submission.name}</h3>
-                            <p className="text-sm text-muted-foreground">
-                              {submission.description}
-                            </p>
-                            <div className="flex items-center gap-2 mt-2">
-                              <Badge variant="outline">{submission.category}</Badge>
-                              <Badge variant="secondary">{submission.pricing}</Badge>
-                              <Badge
-                                variant={
-                                  submission.status === 'PENDING'
-                                    ? 'default'
-                                    : submission.status === 'APPROVED'
-                                    ? 'default'
-                                    : 'destructive'
-                                }
-                              >
-                                {submission.status}
-                              </Badge>
-                            </div>
-                            <p className="text-xs text-muted-foreground mt-2">
-                              Submitted by: {submission.user.name || submission.user.email}
-                            </p>
-                          </div>
-                          {submission.status === 'PENDING' && (
-                            <div className="flex gap-2">
-                              <Button
-                                size="sm"
-                                onClick={() => handleApprove(submission.id)}
-                              >
-                                Approve
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                onClick={() => handleReject(submission.id)}
-                              >
-                                Reject
-                              </Button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
           <TabsContent value="tools">
             <Card>
               <CardHeader>
-                <CardTitle>All Tools</CardTitle>
+                <CardTitle>All Tools ({tools.length})</CardTitle>
                 <CardDescription>
                   Manage all tools in the platform
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">
-                  Tool management interface coming soon...
-                </p>
+                {tools.length === 0 ? (
+                  <p className="text-muted-foreground text-center py-8">
+                    No tools found
+                  </p>
+                ) : (
+                  <div className="space-y-3">
+                    {tools.map((tool) => (
+                      <div
+                        key={tool.id}
+                        className="border rounded-lg p-4 hover:bg-muted/50 transition-colors"
+                      >
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex items-start gap-3 flex-1">
+                            {tool.logoUrl && (
+                              <div className="h-10 w-10 rounded overflow-hidden flex-shrink-0">
+                                <img
+                                  src={tool.logoUrl}
+                                  alt={`${tool.name} logo`}
+                                  className="h-full w-full object-contain"
+                                />
+                              </div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h3 className="font-semibold">{tool.name}</h3>
+                                <Badge variant="outline" className="text-xs">
+                                  {tool.category}
+                                </Badge>
+                                <Badge variant="secondary" className="text-xs">
+                                  {tool.pricing}
+                                </Badge>
+                                {tool.isActive && (
+                                  <Badge className="text-xs bg-green-500">Active</Badge>
+                                )}
+                                {tool.isFeatured && (
+                                  <Badge className="text-xs bg-purple-500">Featured</Badge>
+                                )}
+                              </div>
+                              <p className="text-sm text-muted-foreground line-clamp-2">
+                                {tool.description}
+                              </p>
+                              <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                                <span>{tool.views} views</span>
+                                <span>{tool.clicks} clicks</span>
+                                <span>{tool.reviewCount} reviews</span>
+                                {tool.rating && (
+                                  <span>⭐ {tool.rating.toFixed(1)}</span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex flex-col gap-2 flex-shrink-0">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleToggleActive(tool.id, tool.isActive)}
+                            >
+                              {tool.isActive ? 'Deactivate' : 'Activate'}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleToggleFeatured(tool.id, tool.isFeatured)}
+                            >
+                              {tool.isFeatured ? 'Unfeature' : 'Feature'}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleDeleteTool(tool.id)}
+                            >
+                              Delete
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -317,9 +477,221 @@ export default function AdminPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">
-                  User management interface coming soon...
-                </p>
+                {users.length === 0 ? (
+                  <p className="text-muted-foreground text-center py-8">
+                    No users found
+                  </p>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="border rounded-lg overflow-hidden">
+                      <table className="w-full">
+                        <thead className="bg-muted/50">
+                          <tr>
+                            <th className="text-left p-3 font-medium">User</th>
+                            <th className="text-left p-3 font-medium">Role</th>
+                            <th className="text-left p-3 font-medium">Status</th>
+                            <th className="text-left p-3 font-medium">Workspace Apps</th>
+                            <th className="text-left p-3 font-medium">Reviews</th>
+                            <th className="text-left p-3 font-medium">Joined</th>
+                            <th className="text-right p-3 font-medium">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {users.map((user) => (
+                            <tr key={user.id} className="border-t">
+                              <td className="p-3">
+                                <div>
+                                  <p className="font-medium">{user.name || 'No name'}</p>
+                                  <p className="text-sm text-muted-foreground">{user.email}</p>
+                                </div>
+                              </td>
+                              <td className="p-3">
+                                <Badge variant={user.role === 'ADMIN' ? 'default' : 'secondary'}>
+                                  {user.role}
+                                </Badge>
+                              </td>
+                              <td className="p-3">
+                                <Badge variant={user.isActive ? 'default' : 'destructive'}>
+                                  {user.isActive ? 'Active' : 'Inactive'}
+                                </Badge>
+                              </td>
+                              <td className="p-3">{user._count.workspaces}</td>
+                              <td className="p-3">{user._count.reviews}</td>
+                              <td className="p-3">
+                                <span className="text-sm text-muted-foreground">
+                                  {new Date(user.createdAt).toLocaleDateString()}
+                                </span>
+                              </td>
+                              <td className="p-3">
+                                <div className="flex justify-end gap-2 flex-wrap">
+                                  {user.id !== session?.user?.id && (
+                                    <>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => handleRoleChange(
+                                          user.id,
+                                          user.role === 'ADMIN' ? 'USER' : 'ADMIN'
+                                        )}
+                                      >
+                                        {user.role === 'ADMIN' ? 'Make User' : 'Make Admin'}
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant={user.isActive ? 'secondary' : 'default'}
+                                        onClick={() => handleToggleUserActive(user.id, user.isActive)}
+                                      >
+                                        {user.isActive ? 'Deactivate' : 'Activate'}
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => handleResetPassword(user.id, user.email)}
+                                      >
+                                        Reset Password
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant="destructive"
+                                        onClick={() => handleDeleteUser(user.id)}
+                                      >
+                                        Delete
+                                      </Button>
+                                    </>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="analytics">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5" />
+                  Platform Analytics
+                </CardTitle>
+                <CardDescription>
+                  Track website traffic, user engagement, and tool performance
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardDescription>Total Views</CardDescription>
+                      <CardTitle className="text-2xl flex items-center gap-2">
+                        <Eye className="h-5 w-5 text-blue-500" />
+                        {stats.totalViews.toLocaleString()}
+                      </CardTitle>
+                    </CardHeader>
+                  </Card>
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardDescription>Total Clicks</CardDescription>
+                      <CardTitle className="text-2xl flex items-center gap-2">
+                        <MousePointer className="h-5 w-5 text-green-500" />
+                        {stats.totalClicks.toLocaleString()}
+                      </CardTitle>
+                    </CardHeader>
+                  </Card>
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardDescription>Click-Through Rate</CardDescription>
+                      <CardTitle className="text-2xl flex items-center gap-2">
+                        <TrendingUp className="h-5 w-5 text-purple-500" />
+                        {stats.totalViews > 0
+                          ? ((stats.totalClicks / stats.totalViews) * 100).toFixed(2)
+                          : 0}%
+                      </CardTitle>
+                    </CardHeader>
+                  </Card>
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardDescription>Active Users</CardDescription>
+                      <CardTitle className="text-2xl flex items-center gap-2">
+                        <Users className="h-5 w-5 text-orange-500" />
+                        {users.filter(u => u.isActive).length}
+                      </CardTitle>
+                    </CardHeader>
+                  </Card>
+                </div>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Top Performing Tools</CardTitle>
+                    <CardDescription>Tools with the most views and clicks</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {tools
+                        .sort((a, b) => (b.views + b.clicks) - (a.views + a.clicks))
+                        .slice(0, 10)
+                        .map((tool, index) => (
+                          <div key={tool.id} className="flex items-center justify-between border-b pb-3">
+                            <div className="flex items-center gap-3">
+                              <span className="font-bold text-lg text-muted-foreground">#{index + 1}</span>
+                              <div>
+                                <p className="font-medium">{tool.name}</p>
+                                <p className="text-sm text-muted-foreground">{tool.category}</p>
+                              </div>
+                            </div>
+                            <div className="flex gap-6 text-sm">
+                              <div className="text-right">
+                                <p className="text-muted-foreground">Views</p>
+                                <p className="font-semibold">{tool.views.toLocaleString()}</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-muted-foreground">Clicks</p>
+                                <p className="font-semibold">{tool.clicks.toLocaleString()}</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-muted-foreground">CTR</p>
+                                <p className="font-semibold">
+                                  {tool.views > 0 ? ((tool.clicks / tool.views) * 100).toFixed(1) : 0}%
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>User Growth Summary</CardTitle>
+                    <CardDescription>Platform user statistics</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid md:grid-cols-3 gap-4">
+                      <div className="p-4 border rounded-lg">
+                        <p className="text-sm text-muted-foreground mb-1">Total Users</p>
+                        <p className="text-2xl font-bold">{stats.totalUsers}</p>
+                      </div>
+                      <div className="p-4 border rounded-lg">
+                        <p className="text-sm text-muted-foreground mb-1">Active Workspaces</p>
+                        <p className="text-2xl font-bold">{stats.totalWorkspaces}</p>
+                      </div>
+                      <div className="p-4 border rounded-lg">
+                        <p className="text-sm text-muted-foreground mb-1">Avg Tools/Workspace</p>
+                        <p className="text-2xl font-bold">
+                          {stats.totalWorkspaces > 0
+                            ? (stats.totalTools / stats.totalWorkspaces).toFixed(1)
+                            : 0}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               </CardContent>
             </Card>
           </TabsContent>

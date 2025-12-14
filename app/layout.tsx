@@ -2,13 +2,11 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
+import { defaultMetadata } from "@/lib/seo-config";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export const metadata: Metadata = {
-  title: "AI Workspace - Your Personalized AI Tools Platform",
-  description: "Discover, organize, and use the best AI tools in your customizable workspace",
-};
+export const metadata: Metadata = defaultMetadata;
 
 export default function RootLayout({
   children,

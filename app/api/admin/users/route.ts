@@ -11,23 +11,30 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const submissions = await prisma.toolSubmission.findMany({
-      include: {
-        user: {
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        createdAt: true,
+        _count: {
           select: {
-            id: true,
-            email: true,
-            name: true,
+            workspaces: true,
+            reviews: true,
           },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: {
+        createdAt: 'desc',
+      },
     });
 
-    return NextResponse.json(submissions);
+    return NextResponse.json(users);
   } catch (error) {
+    console.error('Error fetching users:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch submissions' },
+      { error: 'Failed to fetch users' },
       { status: 500 }
     );
   }

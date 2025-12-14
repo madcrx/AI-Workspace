@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ThemePicker } from '@/components/workspace/theme-picker';
+import { ThemePicker, THEMES } from '@/components/workspace/theme-picker';
 import { ArrowLeft, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 
@@ -35,6 +35,13 @@ export default function WorkspaceSettingsPage() {
       const data = await response.json();
       if (data.length > 0) {
         setWorkspace(data[0]);
+        // Apply the current theme on load
+        if (data[0].theme) {
+          const themeData = THEMES.find(t => t.id === data[0].theme);
+          if (themeData) {
+            applyTheme(themeData);
+          }
+        }
       }
     } catch (error) {
       console.error('Error fetching workspace:', error);
@@ -75,6 +82,10 @@ export default function WorkspaceSettingsPage() {
     root.style.setProperty('--theme-secondary', theme.secondaryColor);
     root.style.setProperty('--theme-accent', theme.accentColor);
     root.style.setProperty('--theme-background', theme.backgroundColor);
+    document.body.style.backgroundColor = theme.backgroundColor;
+
+    // Dispatch custom event to notify other pages
+    window.dispatchEvent(new CustomEvent('themeChanged', { detail: theme }));
   };
 
   if (loading || status === 'loading') {

@@ -8,8 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { WorkspaceGrid } from '@/components/workspace/workspace-grid';
 import { ToolPicker } from '@/components/workspace/tool-picker';
-import { ToolContainer } from '@/components/workspace/tool-container';
-import { Plus, Settings, LogOut, Sparkles, Palette, Search, ChevronRight, ChevronLeft, FolderPlus, Key } from 'lucide-react';
+import { EnhancedWidgetSidebar } from '@/components/workspace/enhanced-widget-sidebar';
+import { Plus, Settings, LogOut, Sparkles, Palette, Search, ChevronRight, ChevronLeft, Key } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import Link from 'next/link';
 
@@ -27,12 +27,6 @@ interface Category {
   slug: string;
 }
 
-interface Container {
-  id: string;
-  name: string;
-  color?: string;
-  tools: any[];
-}
 
 export default function WorkspacePage() {
   const { data: session, status } = useSession();
@@ -49,10 +43,7 @@ export default function WorkspacePage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [availableTools, setAvailableTools] = useState<any[]>([]);
   const [sidebarSearch, setSidebarSearch] = useState('');
-  const [containers, setContainers] = useState<Container[]>([]);
-  const [showContainerForm, setShowContainerForm] = useState(false);
-  const [newContainerName, setNewContainerName] = useState('');
-  const [selectedToolForContainer, setSelectedToolForContainer] = useState<string | null>(null);
+  const [userCredentials, setUserCredentials] = useState<Map<string, any>>(new Map());
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -60,14 +51,84 @@ export default function WorkspacePage() {
     } else if (status === 'authenticated') {
       fetchWorkspaces();
       fetchCategories();
+      fetchCredentials();
     }
   }, [status, router]);
+
+  const fetchCredentials = async () => {
+    try {
+      const response = await fetch('/api/credentials');
+      const data = await response.json();
+      const credMap = new Map();
+      if (Array.isArray(data)) {
+        data.forEach((cred: any) => {
+          credMap.set(cred.toolId, cred);
+        });
+      }
+      setUserCredentials(credMap);
+    } catch (error) {
+      console.error('Error fetching credentials:', error);
+    }
+  };
 
   useEffect(() => {
     if (currentWorkspace) {
       applyFilters();
+      // Apply theme if set
+      if (currentWorkspace.theme && currentWorkspace.theme !== 'default') {
+        applyWorkspaceTheme(currentWorkspace.theme);
+      }
     }
   }, [currentWorkspace, searchQuery, selectedCategory, selectedPricing]);
+
+  // Listen for theme changes from settings page
+  useEffect(() => {
+    const handleThemeChange = (event: any) => {
+      const theme = event.detail;
+      const root = document.documentElement;
+      root.style.setProperty('--theme-primary', theme.primaryColor);
+      root.style.setProperty('--theme-secondary', theme.secondaryColor);
+      root.style.setProperty('--theme-accent', theme.accentColor);
+      root.style.setProperty('--theme-background', theme.backgroundColor);
+      document.body.style.backgroundColor = theme.backgroundColor;
+    };
+
+    // Refresh workspace data when page gains focus (e.g., navigating back from settings)
+    const handleFocus = () => {
+      fetchWorkspaces();
+    };
+
+    window.addEventListener('themeChanged', handleThemeChange);
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      window.removeEventListener('themeChanged', handleThemeChange);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, []);
+
+  const applyWorkspaceTheme = (themeId: string) => {
+    // Theme colors mapping
+    const themes: any = {
+      ocean: { primary: '#0ea5e9', secondary: '#06b6d4', accent: '#14b8a6', bg: '#f0f9ff' },
+      forest: { primary: '#10b981', secondary: '#14b8a6', accent: '#059669', bg: '#f0fdf4' },
+      sunset: { primary: '#f97316', secondary: '#fb923c', accent: '#ea580c', bg: '#fff7ed' },
+      lavender: { primary: '#8b5cf6', secondary: '#a78bfa', accent: '#7c3aed', bg: '#faf5ff' },
+      rose: { primary: '#f43f5e', secondary: '#fb7185', accent: '#e11d48', bg: '#fff1f2' },
+      midnight: { primary: '#6366f1', secondary: '#818cf8', accent: '#4f46e5', bg: '#1e1b4b' },
+      charcoal: { primary: '#64748b', secondary: '#94a3b8', accent: '#475569', bg: '#1e293b' },
+    };
+
+    const theme = themes[themeId];
+    if (theme) {
+      const root = document.documentElement;
+      root.style.setProperty('--theme-primary', theme.primary);
+      root.style.setProperty('--theme-secondary', theme.secondary);
+      root.style.setProperty('--theme-accent', theme.accent);
+      root.style.setProperty('--theme-background', theme.bg);
+      document.body.style.backgroundColor = theme.bg;
+    }
+  };
 
   const fetchWorkspaces = async () => {
     try {
@@ -192,78 +253,6 @@ export default function WorkspacePage() {
     }
   };
 
-  const handleCreateContainer = () => {
-    if (!newContainerName.trim()) return;
-
-    const newContainer: Container = {
-      id: `container-${Date.now()}`,
-      name: newContainerName.trim(),
-      color: '#' + Math.floor(Math.random()*16777215).toString(16),
-      tools: [],
-    };
-
-    setContainers([...containers, newContainer]);
-    setNewContainerName('');
-    setShowContainerForm(false);
-  };
-
-  const handleRenameContainer = (containerId: string, newName: string) => {
-    setContainers(containers.map(c =>
-      c.id === containerId ? { ...c, name: newName } : c
-    ));
-  };
-
-  const handleDeleteContainer = (containerId: string) => {
-    // Move tools back to main workspace
-    const container = containers.find(c => c.id === containerId);
-    if (container && container.tools.length > 0) {
-      // Tools remain in the workspace, just remove from container
-    }
-    setContainers(containers.filter(c => c.id !== containerId));
-  };
-
-  const handleAddToolToContainer = (containerId: string) => {
-    setSelectedToolForContainer(containerId);
-  };
-
-  const handleRemoveToolFromContainer = (containerId: string, toolId: string) => {
-    setContainers(containers.map(c => {
-      if (c.id === containerId) {
-        return {
-          ...c,
-          tools: c.tools.filter(t => t.tool.id !== toolId),
-        };
-      }
-      return c;
-    }));
-  };
-
-  const handleMoveToolToContainer = (toolId: string, containerId: string) => {
-    const tool = currentWorkspace?.tools.find(t => t.toolId === toolId);
-    if (!tool) return;
-
-    setContainers(containers.map(c => {
-      if (c.id === containerId) {
-        // Check if tool already in container
-        if (!c.tools.find(t => t.tool.id === toolId)) {
-          return {
-            ...c,
-            tools: [...c.tools, tool],
-          };
-        }
-      }
-      return c;
-    }));
-
-    setSelectedToolForContainer(null);
-  };
-
-  const getToolsNotInContainers = () => {
-    const toolsInContainers = new Set(
-      containers.flatMap(c => c.tools.map(t => t.tool.id))
-    );
-    return filteredTools.filter(t => !toolsInContainers.has(t.tool.id));
-  };
 
 
   if (status === 'loading' || loading) {
@@ -281,6 +270,7 @@ export default function WorkspacePage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <EnhancedWidgetSidebar />
       <header className="border-b bg-background sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
@@ -298,16 +288,6 @@ export default function WorkspacePage() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setShowContainerForm(!showContainerForm)}
-                className="gap-2"
-              >
-                <FolderPlus className="h-4 w-4" />
-                New Container
-              </Button>
-
-              <Button
-                variant="outline"
-                size="sm"
                 onClick={() => setSidebarOpen(!sidebarOpen)}
                 className="gap-2"
               >
@@ -318,7 +298,7 @@ export default function WorkspacePage() {
               <Link href="/workspace/settings">
                 <Button variant="ghost" size="sm" className="gap-2">
                   <Settings className="h-4 w-4" />
-                  Settings
+                  Display Settings
                 </Button>
               </Link>
 
@@ -349,8 +329,8 @@ export default function WorkspacePage() {
         </div>
       </header>
 
-      <div className="flex">
-        <main className={`container mx-auto px-4 py-8 transition-all duration-300 ${sidebarOpen ? 'mr-[12.5%]' : ''}`}>
+      <div className="flex justify-center">
+        <main className={`w-full max-w-7xl px-4 py-8 transition-all duration-300 ${sidebarOpen ? 'pr-[calc(12.5%+1rem)]' : ''}`}>
           <div className="mb-6 flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold mb-2">
@@ -361,44 +341,6 @@ export default function WorkspacePage() {
               </p>
             </div>
           </div>
-
-          {showContainerForm && (
-            <div className="mb-6 p-4 border rounded-lg bg-card">
-              <h3 className="font-semibold mb-2">Create New Container</h3>
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Container name..."
-                  value={newContainerName}
-                  onChange={(e) => setNewContainerName(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleCreateContainer()}
-                  autoFocus
-                />
-                <Button onClick={handleCreateContainer}>Create</Button>
-                <Button variant="outline" onClick={() => setShowContainerForm(false)}>Cancel</Button>
-              </div>
-            </div>
-          )}
-
-          {selectedToolForContainer && (
-            <div className="mb-6 p-4 border rounded-lg bg-card">
-              <h3 className="font-semibold mb-2">Select a tool to add to container</h3>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 max-h-[300px] overflow-y-auto">
-                {getToolsNotInContainers().map((tool) => (
-                  <button
-                    key={tool.id}
-                    onClick={() => handleMoveToolToContainer(tool.toolId, selectedToolForContainer)}
-                    className="p-2 border rounded hover:bg-accent transition-colors text-left"
-                  >
-                    <div className="text-sm font-medium truncate">{tool.tool.name}</div>
-                    <div className="text-xs text-muted-foreground truncate">{tool.tool.category}</div>
-                  </button>
-                ))}
-              </div>
-              <Button variant="outline" className="mt-2" onClick={() => setSelectedToolForContainer(null)}>
-                Cancel
-              </Button>
-            </div>
-          )}
 
           {currentWorkspace && currentWorkspace.tools.length > 0 && (
             <div className="mb-6 flex flex-col md:flex-row gap-4">
@@ -438,52 +380,22 @@ export default function WorkspacePage() {
           )}
 
           {currentWorkspace ? (
-            <>
-              {/* Containers Section */}
-              {containers.length > 0 && (
-                <div className="mb-8">
-                  <h2 className="text-xl font-semibold mb-4">Tool Containers</h2>
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                    {containers.map((container) => (
-                      <ToolContainer
-                        key={container.id}
-                        container={container}
-                        onRemoveTool={(toolId) => handleRemoveToolFromContainer(container.id, toolId)}
-                        onRename={handleRenameContainer}
-                        onDelete={handleDeleteContainer}
-                        onAddTool={handleAddToolToContainer}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Individual Tools Section */}
-              {getToolsNotInContainers().length > 0 ? (
-                <>
-                  {containers.length > 0 && (
-                    <h2 className="text-xl font-semibold mb-4">Individual Tools</h2>
-                  )}
-                  <WorkspaceGrid
-                    tools={getToolsNotInContainers()}
-                    onRemoveTool={handleRemoveTool}
-                    onUpdateLayout={handleUpdateLayout}
-                  />
-                </>
-              ) : (
-                <>
-                  {containers.length === 0 && (
-                    <div className="text-center py-12">
-                      <p className="text-muted-foreground">
-                        {searchQuery || selectedCategory !== 'all' || selectedPricing !== 'all'
-                          ? 'No tools found matching your filters'
-                          : 'No tools in workspace. Click "Show Tools" to get started!'}
-                      </p>
-                    </div>
-                  )}
-                </>
-              )}
-            </>
+            filteredTools.length > 0 ? (
+              <WorkspaceGrid
+                tools={filteredTools}
+                onRemoveTool={handleRemoveTool}
+                onUpdateLayout={handleUpdateLayout}
+                userCredentials={userCredentials}
+              />
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">
+                  {searchQuery || selectedCategory !== 'all' || selectedPricing !== 'all'
+                    ? 'No tools found matching your filters'
+                    : 'No tools in workspace. Click "Show Tools" to get started!'}
+                </p>
+              </div>
+            )
           ) : (
             <div className="text-center py-12">
               <p className="text-muted-foreground">No workspace found</p>
