@@ -11,7 +11,8 @@ model User {
   id            String     @id @default(cuid())
   email         String     @unique
   name          String?
-  password      String
+  password      String?    // Optional for OAuth users
+  emailVerified DateTime?
   role          String     @default("USER")
   isActive      Boolean    @default(true)
   resetToken    String?
@@ -22,6 +23,42 @@ model User {
   reviews       Review[]
   credentials   ToolCredential[]
   image         String?
+  accounts      Account[]
+  sessions      Session[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
 }
 
 model Workspace {
@@ -173,4 +210,40 @@ model AdvertisingRequest {
   status          String   @default("PENDING")
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+}
+
+model Tutorial {
+  id              String   @id @default(cuid())
+  title           String
+  slug            String   @unique
+  description     String
+  content         String   // Markdown content
+  category        String
+  difficulty      String   @default("BEGINNER") // BEGINNER, INTERMEDIATE, ADVANCED
+  youtubeVideoId  String?  // YouTube video ID
+  affiliateLinks  String?  @default("[]") // JSON array of affiliate links with tracking
+  toolsUsed       String?  @default("[]") // JSON array of tool IDs
+  duration        Int?     // Duration in minutes
+  views           Int      @default(0)
+  likes           Int      @default(0)
+  isPublished     Boolean  @default(true)
+  isFeatured      Boolean  @default(false)
+  thumbnailUrl    String?
+  tags            String?  @default("[]") // JSON array
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model ScraperLog {
+  id              String   @id @default(cuid())
+  source          String   // Source website/API
+  toolsFound      Int      @default(0)
+  toolsAdded      Int      @default(0)
+  toolsUpdated    Int      @default(0)
+  toolsSkipped    Int      @default(0)
+  errors          String?  @default("[]") // JSON array of errors
+  status          String   // SUCCESS, PARTIAL, FAILED
+  executionTime   Int?     // milliseconds
+  triggeredBy     String   @default("CRON") // CRON, MANUAL
+  createdAt       DateTime @default(now())
 }

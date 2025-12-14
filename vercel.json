@@ -8,5 +8,11 @@
     "DATABASE_URL": "@database_url",
     "NEXTAUTH_SECRET": "@nextauth_secret",
     "NEXTAUTH_URL": "@nextauth_url"
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/auto-scraper",
+      "schedule": "0 2 * * *"
+    }
+  ]
 }

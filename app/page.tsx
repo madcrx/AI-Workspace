@@ -58,6 +58,9 @@ export default function HomePage() {
             <Link href="/tools">
               <Button variant="ghost">Explore Tools</Button>
             </Link>
+            <Link href="/tutorials">
+              <Button variant="ghost">Tutorials</Button>
+            </Link>
             {session ? (
               <Link href="/workspace">
                 <Button>My Workspace</Button>
