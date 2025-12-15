@@ -1930,7 +1930,9 @@ async function main() {
 
   // Delete existing tools and submissions
   await prisma.workspaceTool.deleteMany({});
-  await prisma.toolSubmission.deleteMany({});
+  await prisma.featureRequest.deleteMany({});
+  await prisma.toolUpdateRequest.deleteMany({});
+  await prisma.advertisingRequest.deleteMany({});
   await prisma.tool.deleteMany({});
 
   console.log('✅ Cleared old tools');
