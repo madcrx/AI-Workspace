@@ -62,6 +62,8 @@ export default function AdminPage() {
   const [scrapingResult, setScrapingResult] = useState<any>(null);
   const [fetchingImages, setFetchingImages] = useState(false);
   const [imageFetchResult, setImageFetchResult] = useState<any>(null);
+  const [autoScraping, setAutoScraping] = useState(false);
+  const [autoScraperResult, setAutoScraperResult] = useState<any>(null);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -295,6 +297,24 @@ export default function AdminPage() {
     }
   };
 
+  const runAutoScraper = async () => {
+    setAutoScraping(true);
+    setAutoScraperResult(null);
+    try {
+      const response = await fetch('/api/admin/auto-scraper', {
+        method: 'POST',
+      });
+      const data = await response.json();
+      setAutoScraperResult(data);
+      fetchData(); // Refresh stats
+    } catch (error) {
+      console.error('Error running auto-scraper:', error);
+      setAutoScraperResult({ error: 'Failed to run auto-scraper' });
+    } finally {
+      setAutoScraping(false);
+    }
+  };
+
   if (loading || status === 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -372,6 +392,7 @@ export default function AdminPage() {
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="tools">Tools</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="auto-scraper">Auto-Scraper</TabsTrigger>
             <TabsTrigger value="scraper">Scraper</TabsTrigger>
             <TabsTrigger value="images">Images</TabsTrigger>
           </TabsList>
@@ -692,6 +713,114 @@ export default function AdminPage() {
                     </div>
                   </CardContent>
                 </Card>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="auto-scraper">
+            <Card>
+              <CardHeader>
+                <CardTitle>🤖 Auto-Scraper - Automatic Tool Discovery</CardTitle>
+                <CardDescription>
+                  Automatically discover and add new AI tools from multiple sources
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                  <h4 className="font-semibold mb-2 text-blue-900 dark:text-blue-100">✨ Fully Automated Tool Discovery</h4>
+                  <p className="text-sm text-blue-800 dark:text-blue-200 mb-3">
+                    The Auto-Scraper runs automatically every night at 2 AM (configured in Vercel Cron).
+                    It scans multiple sources and automatically adds new AI tools to your database - no admin action required!
+                  </p>
+                  <ul className="text-sm text-blue-800 dark:text-blue-200 list-disc list-inside space-y-1">
+                    <li><strong>Product Hunt AI</strong> - Latest AI tools from Product Hunt</li>
+                    <li><strong>GitHub Trending</strong> - Top AI repositories and tools</li>
+                    <li><strong>AI Directories</strong> - Popular AI tool directories</li>
+                  </ul>
+                </div>
+
+                <div className="space-y-2">
+                  <h4 className="font-semibold">How it Works:</h4>
+                  <ol className="text-sm text-muted-foreground list-decimal list-inside space-y-1">
+                    <li>Scrapes multiple AI tool sources automatically</li>
+                    <li>Extracts tool name, description, category, pricing</li>
+                    <li><strong>Auto-activates</strong> new tools (no approval needed)</li>
+                    <li>Updates existing tools with fresh data</li>
+                    <li>Logs all actions for review</li>
+                  </ol>
+                </div>
+
+                <div className="border-t pt-4">
+                  <p className="text-sm font-medium mb-2">Manual Trigger:</p>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Run the auto-scraper manually to discover tools right now
+                  </p>
+                  <Button
+                    onClick={runAutoScraper}
+                    disabled={autoScraping}
+                    className="w-full"
+                    size="lg"
+                  >
+                    {autoScraping ? '🔄 Discovering Tools...' : '🚀 Run Auto-Scraper Now'}
+                  </Button>
+                </div>
+
+                {autoScraperResult && (
+                  <div className={`p-4 rounded-lg border ${
+                    autoScraperResult.error
+                      ? 'bg-red-50 border-red-200'
+                      : 'bg-green-50 border-green-200'
+                  }`}>
+                    <h4 className="font-semibold mb-2">Auto-Scraper Results:</h4>
+                    {autoScraperResult.error ? (
+                      <p className="text-sm text-red-600">{autoScraperResult.error}</p>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="grid grid-cols-2 gap-2 text-sm">
+                          <div className="p-2 bg-white rounded">
+                            <p className="text-muted-foreground">Sources Scraped</p>
+                            <p className="text-xl font-bold">{autoScraperResult.totalSources}</p>
+                          </div>
+                          <div className="p-2 bg-white rounded">
+                            <p className="text-muted-foreground">Tools Found</p>
+                            <p className="text-xl font-bold text-blue-600">{autoScraperResult.totalFound}</p>
+                          </div>
+                          <div className="p-2 bg-white rounded">
+                            <p className="text-muted-foreground">✨ New Tools Added</p>
+                            <p className="text-xl font-bold text-green-600">{autoScraperResult.totalAdded}</p>
+                          </div>
+                          <div className="p-2 bg-white rounded">
+                            <p className="text-muted-foreground">Updated</p>
+                            <p className="text-xl font-bold text-yellow-600">{autoScraperResult.totalUpdated}</p>
+                          </div>
+                        </div>
+
+                        {autoScraperResult.results && autoScraperResult.results.length > 0 && (
+                          <div className="mt-3 space-y-2">
+                            <p className="font-medium text-sm">Details by Source:</p>
+                            {autoScraperResult.results.map((result: any, idx: number) => (
+                              <div key={idx} className="text-xs p-2 bg-white rounded">
+                                <p className="font-semibold">{result.source}</p>
+                                <p>Found: {result.toolsFound} | Added: {result.toolsAdded} | Updated: {result.toolsUpdated}</p>
+                                <p className="text-muted-foreground">Status: {result.status} ({result.executionTime}ms)</p>
+                                {result.errors && result.errors.length > 0 && (
+                                  <p className="text-red-600 mt-1">Errors: {result.errors.length}</p>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div className="border-t pt-4">
+                  <p className="text-xs text-muted-foreground">
+                    💡 <strong>Tip:</strong> The auto-scraper runs every night at 2 AM automatically.
+                    All new tools are auto-activated and ready for users immediately!
+                  </p>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

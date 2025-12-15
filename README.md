@@ -2,43 +2,71 @@
 
 A comprehensive AI tools workspace platform built with Next.js, featuring a Zendesk-style customizable interface where users can discover, organize, and access AI tools in their personalized workspace.
 
-## Features
+> 🚀 **Ready to deploy?** See [QUICKSTART.md](QUICKSTART.md) for 15-minute deployment guide!
 
-### Core Functionality
+## ⚡ Quick Links
+
+- 📖 **[15-Minute Quick Start](QUICKSTART.md)** - Deploy now!
+- 🚀 **[Full Deployment Guide](DEPLOYMENT_GUIDE.md)** - Complete walkthrough
+- 🔐 **[OAuth Setup](OAUTH_SETUP.md)** - Google & Facebook login
+- 💾 **[Database Setup](DATABASE_SETUP.md)** - PostgreSQL configuration
+- 🌐 **Live Demo**: [www.aiworkspace.com](https://www.aiworkspace.com)
+
+---
+
+## ✨ Features
+
+### 🎯 Core Functionality
 - **Customizable Workspaces**: Drag-and-drop interface to arrange AI tools
-- **AI Tools Directory**: Curated catalog of AI tools across multiple categories
-- **User Authentication**: Secure signup/signin with NextAuth.js
-- **Tool Submission System**: Developers can submit tools for review
+- **AI Tools Directory**: 1000+ curated AI tools across multiple categories
+- **🤖 Auto-Discovery**: Automated tool scraping every night (zero admin work!)
+- **OAuth Login**: Google and Facebook authentication
+- **📚 AI Tutorials**: YouTube videos with affiliate link monetization
 - **Admin Dashboard**: Complete management system for tools, users, and submissions
-- **Theme Customization**: Light/dark mode support
+- **Theme Customization**: 7 pre-built themes (Ocean, Forest, Sunset, etc.)
 - **Search & Filter**: Advanced filtering by category, pricing, and keywords
+- **Widgets**: 9 draggable widgets (clock, notepad, calculator, weather, etc.)
 
-### User Features
+### 👤 User Features
+- Sign in with Google, Facebook, or email
 - Create and manage multiple workspaces
 - Add/remove tools from workspace
 - Customize workspace layout and theme
 - Browse and discover new AI tools
+- Watch AI tutorials and access exclusive deals
 - Submit tools for community review
+- Rate and review tools
 - Track tool views and engagement
 
-### Admin Features
-- Review and approve tool submissions
-- Manage all tools in the platform
-- View platform statistics
-- User management
-- Tool analytics (views, clicks)
+### 🔧 Admin Features
+- **User Management**: Create, edit, deactivate, reset passwords
+- **Tool Management**: Activate, feature, delete tools
+- **🤖 Auto-Scraper Dashboard**: View automated tool discovery stats
+- **Manual Scraper Trigger**: Discover new tools on demand
+- **Analytics**: Platform-wide statistics and insights
+- **Submissions Review**: Approve/reject tool submissions
+- **Image Fetcher**: Automatically fetch tool logos
+
+### 🚀 Automation Features
+- **Nightly Auto-Scraper**: Runs at 2 AM every night via Vercel Cron
+- **Multi-Source Discovery**: Scrapes Product Hunt, GitHub, AI directories
+- **Auto-Activation**: New tools go live immediately (no approval needed)
+- **Smart Updates**: Refreshes existing tool data automatically
+- **Comprehensive Logging**: Track all scraping activity and errors
 
 ## Technology Stack
 
 - **Framework**: Next.js 14 (App Router)
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS
-- **Database**: SQLite with Prisma ORM
-- **Authentication**: NextAuth.js
+- **Database**: PostgreSQL with Prisma ORM (SQLite for local dev)
+- **Authentication**: NextAuth.js with OAuth support
 - **UI Components**: Radix UI
 - **Icons**: Lucide React
+- **Hosting**: Vercel (with cron jobs)
+- **OAuth Providers**: Google, Facebook
 
-## Getting Started
+## Getting Started Locally
 
 ### Prerequisites
 - Node.js 18+ installed
@@ -46,7 +74,11 @@ A comprehensive AI tools workspace platform built with Next.js, featuring a Zend
 
 ### Installation
 
-1. Clone the repository or navigate to the project directory
+1. Clone the repository
+```bash
+git clone https://github.com/madcrx/AI-Workspace.git
+cd AI-Workspace
+```
 
 2. Install dependencies:
 ```bash
@@ -54,11 +86,20 @@ npm install
 ```
 
 3. Set up environment variables:
-The `.env` file has been created with default values. Update these for production:
-```
+Create `.env.local` file:
+```env
 DATABASE_URL="file:./prisma/dev.db"
 NEXTAUTH_SECRET="your-secure-random-secret"
 NEXTAUTH_URL="http://localhost:3000"
+
+# Optional - OAuth (leave empty if not using)
+GOOGLE_CLIENT_ID=""
+GOOGLE_CLIENT_SECRET=""
+FACEBOOK_CLIENT_ID=""
+FACEBOOK_CLIENT_SECRET=""
+
+# Cron Secret
+CRON_SECRET="your-cron-secret-here"
 ```
 
 4. Initialize the database:
@@ -80,37 +121,53 @@ After seeding the database, you can login with:
 - Email: `admin@aiworkspace.com`
 - Password: `admin123`
 
-**Important**: Change this password in production!
+⚠️ **Important**: Change this password in production!
 
 ## Project Structure
 
 ```
 ai-workspace-platform/
-├── app/                      # Next.js app directory
-│   ├── api/                 # API routes
-│   │   ├── auth/           # Authentication endpoints
-│   │   ├── tools/          # Tools CRUD endpoints
-│   │   ├── workspace/      # Workspace management
-│   │   ├── submissions/    # Tool submissions
-│   │   ├── admin/          # Admin endpoints
-│   │   └── categories/     # Category management
-│   ├── auth/               # Auth pages (signin/signup)
-│   ├── tools/              # Tools catalog pages
-│   ├── workspace/          # User workspace page
-│   ├── admin/              # Admin dashboard
-│   ├── submit-tool/        # Tool submission form
-│   └── page.tsx            # Homepage
-├── components/             # React components
-│   ├── ui/                # Reusable UI components
-│   └── workspace/         # Workspace-specific components
-├── lib/                   # Utility libraries
-│   ├── prisma.ts         # Prisma client
-│   ├── auth.ts           # Auth configuration
-│   └── utils.ts          # Helper functions
-├── prisma/               # Database schema and migrations
-│   ├── schema.prisma     # Database schema
-│   └── seed.ts           # Database seeding
-└── types/                # TypeScript type definitions
+├── app/                        # Next.js app directory
+│   ├── api/                   # API routes
+│   │   ├── auth/             # Authentication (NextAuth)
+│   │   ├── tools/            # Tools CRUD
+│   │   ├── workspace/        # Workspace management
+│   │   ├── tutorials/        # AI tutorials API
+│   │   ├── submissions/      # Tool/feature submissions
+│   │   ├── admin/            # Admin endpoints
+│   │   │   ├── auto-scraper/ # Automated tool discovery
+│   │   │   ├── users/        # User management
+│   │   │   └── tools/        # Tool management
+│   │   ├── cron/             # Scheduled tasks
+│   │   └── categories/       # Category management
+│   ├── auth/                 # Auth pages (signin/signup)
+│   ├── tools/                # Tools catalog
+│   ├── tutorials/            # AI tutorials section
+│   ├── workspace/            # User workspace
+│   ├── admin/                # Admin dashboard
+│   ├── submit-tool/          # Tool submission form
+│   ├── request-feature/      # Feature requests
+│   ├── advertise/            # Advertising inquiries
+│   └── page.tsx              # Homepage
+├── components/               # React components
+│   ├── ui/                  # Reusable UI components
+│   └── workspace/           # Workspace-specific components
+│       ├── widgets/         # 9 draggable widgets
+│       └── theme-picker.tsx # Theme customization
+├── lib/                     # Utility libraries
+│   ├── auth.ts             # NextAuth configuration
+│   ├── prisma.ts           # Prisma client
+│   ├── auto-scraper.ts     # Automated tool discovery
+│   └── utils.ts            # Helper functions
+├── prisma/                 # Database schema and migrations
+│   ├── schema.prisma       # Database models
+│   └── seed.ts             # Database seeding
+├── types/                  # TypeScript type definitions
+├── docs/                   # Documentation
+│   ├── DEPLOYMENT_GUIDE.md
+│   ├── OAUTH_SETUP.md
+│   └── DATABASE_SETUP.md
+└── vercel.json            # Vercel configuration (cron jobs)
 ```
 
 ## Key Features Breakdown
@@ -143,11 +200,16 @@ ai-workspace-platform/
 
 The platform uses the following main models:
 - **User**: User accounts and authentication
+- **Account**: OAuth provider accounts (NextAuth)
+- **Session**: User sessions (NextAuth)
+- **VerificationToken**: Email verification tokens (NextAuth)
 - **Workspace**: User workspaces
 - **WorkspaceTool**: Tools added to workspaces
 - **Tool**: AI tool catalog
 - **ToolSubmission**: Tool submissions for review
+- **Tutorial**: AI tutorials with YouTube videos and affiliate links
 - **Category**: Tool categories
+- **ScraperLog**: Auto-scraper activity logs
 - **Advertisement**: Ad management (extensible)
 
 ## API Endpoints
@@ -156,6 +218,8 @@ The platform uses the following main models:
 - `GET /api/tools` - List all tools
 - `GET /api/tools/[id]` - Get tool details
 - `GET /api/categories` - List categories
+- `GET /api/tutorials` - List all tutorials
+- `GET /api/tutorials/[slug]` - Get tutorial details
 - `POST /api/auth/signup` - User registration
 
 ### Protected Routes (Authenticated Users)
@@ -174,6 +238,11 @@ The platform uses the following main models:
 - `GET /api/admin/tools` - Manage tools
 - `PATCH /api/admin/tools/[id]` - Update tool
 - `DELETE /api/admin/tools/[id]` - Delete tool
+- `POST /api/admin/auto-scraper` - Manually trigger auto-scraper
+- `GET /api/admin/auto-scraper/logs` - View scraper logs
+
+### Cron Routes (Automated)
+- `GET /api/cron/auto-scraper` - Automated tool discovery (runs at 2 AM daily)
 
 ## Customization
 
@@ -188,28 +257,141 @@ Edit `app/globals.css` to modify the color scheme and design tokens.
 
 ### Adding Features
 The platform is designed to be extensible. Key areas for enhancement:
-- Advertisement system (schema ready, needs UI)
-- Advanced analytics
-- User profiles
-- Tool ratings and reviews
-- API integrations
+- Advertisement system (schema ready, needs enhanced UI)
+- Advanced analytics and reporting
+- User profiles and social features
+- Tool ratings and reviews (schema ready)
+- API integrations with AI tools
 - Payment processing for premium features
+- Additional auto-scraper sources
+- Email notifications and newsletters
 
 ## Production Deployment
 
-### Environment Variables
-Ensure you set these for production:
+> ⚠️ **Important**: This is a full-stack Next.js application with authentication, API routes, and database. It **CANNOT** be deployed to GitHub Pages, which only serves static files.
+
+### Recommended: Deploy to Vercel (Free Tier Available)
+
+Vercel is the creator of Next.js and provides the best hosting experience with zero configuration.
+
+#### Quick Deploy to Vercel
+
+1. **Push your code to GitHub** (already done!)
+
+2. **Sign up for Vercel**
+   - Go to [vercel.com](https://vercel.com)
+   - Sign up with your GitHub account (free)
+
+3. **Import your repository**
+   - Click "Add New Project"
+   - Select your `madcrx/AI-Workspace` repository
+   - Click "Import"
+
+4. **Configure Environment Variables**
+
+   Add these in the Vercel dashboard during setup:
+
+   ```
+   DATABASE_URL=file:./prisma/dev.db
+   NEXTAUTH_SECRET=your-secure-random-string-here
+   NEXTAUTH_URL=https://your-project-name.vercel.app
+   ```
+
+   **Generate a secure NEXTAUTH_SECRET:**
+   ```bash
+   openssl rand -base64 32
+   ```
+
+5. **Deploy**
+   - Click "Deploy"
+   - Vercel will automatically build and deploy your app
+   - Your app will be live at `https://your-project-name.vercel.app`
+
+6. **Initialize Database**
+
+   After first deployment, run the seed command:
+   - Go to your Vercel project dashboard
+   - Navigate to Settings > Functions
+   - Or use Vercel CLI:
+   ```bash
+   npm i -g vercel
+   vercel login
+   vercel link
+   vercel env pull
+   npm run db:seed
+   ```
+
+#### For Production Database (Recommended)
+
+For a production app, upgrade from SQLite to PostgreSQL:
+
+1. **Get a PostgreSQL database** (Free options):
+   - [Vercel Postgres](https://vercel.com/docs/storage/vercel-postgres) (Free tier)
+   - [Neon](https://neon.tech) (Free tier)
+   - [Supabase](https://supabase.com) (Free tier)
+
+2. **Update your database configuration**:
+
+   In `prisma/schema.prisma`, change:
+   ```prisma
+   datasource db {
+     provider = "postgresql"  // Changed from sqlite
+     url      = env("DATABASE_URL")
+   }
+   ```
+
+3. **Update environment variable** in Vercel:
+   ```
+   DATABASE_URL=postgresql://user:password@host:5432/database
+   ```
+
+4. **Deploy and migrate**:
+   ```bash
+   git add .
+   git commit -m "Switch to PostgreSQL"
+   git push
+   # Vercel will auto-deploy
+   ```
+
+### Alternative Deployment Options
+
+#### Option 2: Netlify
+1. Connect your GitHub repo to Netlify
+2. Set build command: `npm run build`
+3. Set publish directory: `.next`
+4. Add environment variables
+5. Deploy
+
+#### Option 3: Railway
+1. Go to [railway.app](https://railway.app)
+2. "New Project" → "Deploy from GitHub repo"
+3. Select your repository
+4. Add environment variables
+5. Railway auto-detects Next.js and deploys
+
+#### Option 4: Self-Hosted VPS
+If you have your own server:
+```bash
+npm run build
+npm start
+# Use PM2 or systemd to keep it running
 ```
+
+### Environment Variables for Production
+
+Required variables:
+```env
 DATABASE_URL="your-production-database-url"
 NEXTAUTH_SECRET="secure-random-string"
 NEXTAUTH_URL="https://yourdomain.com"
 ```
 
-### Database
-For production, consider migrating from SQLite to PostgreSQL:
-1. Update `prisma/schema.prisma` datasource to postgresql
-2. Update DATABASE_URL in .env
-3. Run migrations: `npm run db:push`
+### Post-Deployment
+
+1. **Change admin password** immediately after first login
+2. **Set up custom domain** in Vercel/Netlify settings
+3. **Enable HTTPS** (automatic on Vercel/Netlify)
+4. **Monitor your app** using Vercel Analytics or similar
 
 ### Build
 ```bash
