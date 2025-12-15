@@ -43,7 +43,7 @@ export async function POST(
       where: { toolId: params.id },
     });
 
-    const avgRating = allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length;
+    const avgRating = allReviews.reduce((sum: number, r: any) => sum + r.rating, 0) / allReviews.length;
 
     await prisma.tool.update({
       where: { id: params.id },
