@@ -66,16 +66,11 @@ export function RSSWidget({ onSettings, settings }: RSSWidgetProps) {
 
   return (
     <Card className="w-full h-full">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+      <CardHeader className="pb-2">
         <div className="flex items-center gap-2">
           <Rss className="h-4 w-4" />
           <CardTitle className="text-sm font-medium">{defaultFeed}</CardTitle>
         </div>
-        {onSettings && (
-          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onSettings}>
-            <Settings className="h-4 w-4" />
-          </Button>
-        )}
       </CardHeader>
       <CardContent>
         {loading ? (
