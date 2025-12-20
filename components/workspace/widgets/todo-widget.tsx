@@ -18,19 +18,33 @@ export function TodoWidget() {
   const [newTodo, setNewTodo] = useState('');
 
   useEffect(() => {
-    const saved = localStorage.getItem('widget-todos');
-    if (saved) {
+    // Load todos from server
+    const loadTodos = async () => {
       try {
-        setTodos(JSON.parse(saved));
-      } catch (e) {
-        console.error('Error loading todos:', e);
+        const response = await fetch('/api/user/preferences');
+        if (response.ok) {
+          const data = await response.json();
+          setTodos(data.todos || []);
+        }
+      } catch (error) {
+        console.error('Error loading todos:', error);
       }
-    }
+    };
+    loadTodos();
   }, []);
 
-  const saveTodos = (updatedTodos: TodoItem[]) => {
+  const saveTodos = async (updatedTodos: TodoItem[]) => {
     setTodos(updatedTodos);
-    localStorage.setItem('widget-todos', JSON.stringify(updatedTodos));
+    // Save to server
+    try {
+      await fetch('/api/user/preferences', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ todos: updatedTodos }),
+      });
+    } catch (error) {
+      console.error('Error saving todos:', error);
+    }
   };
 
   const addTodo = () => {

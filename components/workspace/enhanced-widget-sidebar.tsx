@@ -56,19 +56,33 @@ export function EnhancedWidgetSidebar() {
   );
 
   useEffect(() => {
-    const saved = localStorage.getItem('enhanced-widgets');
-    if (saved) {
+    // Load widgets from server
+    const loadWidgets = async () => {
       try {
-        setWidgets(JSON.parse(saved));
-      } catch (e) {
-        console.error('Error loading widgets:', e);
+        const response = await fetch('/api/user/preferences');
+        if (response.ok) {
+          const data = await response.json();
+          setWidgets(data.widgets || []);
+        }
+      } catch (error) {
+        console.error('Error loading widgets:', error);
       }
-    }
+    };
+    loadWidgets();
   }, []);
 
-  const saveWidgets = (updatedWidgets: WidgetInstance[]) => {
+  const saveWidgets = async (updatedWidgets: WidgetInstance[]) => {
     setWidgets(updatedWidgets);
-    localStorage.setItem('enhanced-widgets', JSON.stringify(updatedWidgets));
+    // Save to server
+    try {
+      await fetch('/api/user/preferences', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ widgets: updatedWidgets }),
+      });
+    } catch (error) {
+      console.error('Error saving widgets:', error);
+    }
   };
 
   const addWidget = (type: string) => {
