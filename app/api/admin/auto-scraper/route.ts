@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { AutoScraper } from '@/lib/auto-scraper';
+import { prisma } from '@/lib/prisma';
 
 export async function POST(request: NextRequest) {
   try {
@@ -50,7 +51,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get('limit') || '20');
 
-    const logs = await prisma?.scraperLog.findMany({
+    const logs = await prisma.scraperLog.findMany({
       orderBy: { createdAt: 'desc' },
       take: limit,
     });

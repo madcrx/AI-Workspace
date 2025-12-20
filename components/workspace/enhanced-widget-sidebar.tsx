@@ -118,7 +118,7 @@ export function EnhancedWidgetSidebar() {
 
       setDragStart({ x: e.clientX, y: e.clientY });
     } else if (resizingWidget) {
-      const dx = e.clientX - dragStart.x;
+      // Only allow height resizing, width stays fixed
       const dy = e.clientY - dragStart.y;
 
       saveWidgets(
@@ -126,7 +126,6 @@ export function EnhancedWidgetSidebar() {
           w.id === resizingWidget
             ? {
                 ...w,
-                width: Math.max(200, w.width + dx),
                 height: Math.max(150, w.height + dy),
               }
             : w
@@ -198,7 +197,7 @@ export function EnhancedWidgetSidebar() {
             <span className="text-xs font-medium">{widgetDef.name}</span>
           </div>
           <div className="flex items-center gap-1">
-            {widget.type !== 'calendar' && widget.type !== 'calculator' && (
+            {widget.type !== 'calendar' && widget.type !== 'calculator' && widget.type !== 'notepad' && (
               <Button
                 variant="ghost"
                 size="icon"
@@ -227,14 +226,13 @@ export function EnhancedWidgetSidebar() {
           />
         </div>
 
-        {/* Resize handle */}
+        {/* Resize handle - vertical only */}
         <div
-          className="absolute bottom-0 right-0 w-4 h-4 cursor-nwse-resize bg-primary/20 hover:bg-primary/40 transition-colors"
+          className="absolute bottom-0 left-0 right-0 h-2 cursor-ns-resize bg-primary/20 hover:bg-primary/40 transition-colors flex items-center justify-center"
           onMouseDown={(e) => handleMouseDown(e, widget.id, true)}
-          style={{
-            clipPath: 'polygon(100% 0, 100% 100%, 0 100%)',
-          }}
-        />
+        >
+          <div className="w-12 h-1 rounded-full bg-primary/60"></div>
+        </div>
       </div>
     );
   };
@@ -315,40 +313,19 @@ export function EnhancedWidgetSidebar() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             {settingsWidget?.type === 'weather' && (
-              <>
-                <div className="space-y-2">
-                  <Label>City</Label>
-                  <Input
-                    value={widgetSettings.city || 'New York'}
-                    onChange={(e) =>
-                      setWidgetSettings({ ...widgetSettings, city: e.target.value })
-                    }
-                    placeholder="Enter city name"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Latitude</Label>
-                  <Input
-                    type="number"
-                    step="0.0001"
-                    value={widgetSettings.latitude || 40.7128}
-                    onChange={(e) =>
-                      setWidgetSettings({ ...widgetSettings, latitude: parseFloat(e.target.value) })
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Longitude</Label>
-                  <Input
-                    type="number"
-                    step="0.0001"
-                    value={widgetSettings.longitude || -74.006}
-                    onChange={(e) =>
-                      setWidgetSettings({ ...widgetSettings, longitude: parseFloat(e.target.value) })
-                    }
-                  />
-                </div>
-              </>
+              <div className="space-y-2">
+                <Label>Location</Label>
+                <Input
+                  value={widgetSettings.location || 'New York'}
+                  onChange={(e) =>
+                    setWidgetSettings({ ...widgetSettings, location: e.target.value })
+                  }
+                  placeholder="Enter city or location"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Enter a city name (e.g., "New York", "London", "Tokyo")
+                </p>
+              </div>
             )}
 
             {settingsWidget?.type === 'clock' && (

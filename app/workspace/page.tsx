@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { WorkspaceGrid } from '@/components/workspace/workspace-grid';
 import { ToolPicker } from '@/components/workspace/tool-picker';
 import { EnhancedWidgetSidebar } from '@/components/workspace/enhanced-widget-sidebar';
@@ -110,6 +111,7 @@ export default function WorkspacePage() {
   const applyWorkspaceTheme = (themeId: string) => {
     // Theme colors mapping
     const themes: any = {
+      default: { primary: '#3b82f6', secondary: '#60a5fa', accent: '#2563eb', bg: '#ffffff' },
       ocean: { primary: '#0ea5e9', secondary: '#06b6d4', accent: '#14b8a6', bg: '#f0f9ff' },
       forest: { primary: '#10b981', secondary: '#14b8a6', accent: '#059669', bg: '#f0fdf4' },
       sunset: { primary: '#f97316', secondary: '#fb923c', accent: '#ea580c', bg: '#fff7ed' },
@@ -127,6 +129,27 @@ export default function WorkspacePage() {
       root.style.setProperty('--theme-accent', theme.accent);
       root.style.setProperty('--theme-background', theme.bg);
       document.body.style.backgroundColor = theme.bg;
+    }
+  };
+
+  const handleThemeSelection = async (themeId: string) => {
+    if (!currentWorkspace) return;
+
+    // Apply theme immediately
+    applyWorkspaceTheme(themeId);
+
+    // Save theme to workspace
+    try {
+      await fetch(`/api/workspace/${currentWorkspace.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ theme: themeId }),
+      });
+
+      // Update local state
+      setCurrentWorkspace({ ...currentWorkspace, theme: themeId });
+    } catch (error) {
+      console.error('Error updating theme:', error);
     }
   };
 
@@ -295,12 +318,27 @@ export default function WorkspacePage() {
                 {sidebarOpen ? 'Hide' : 'Show'} Tools
               </Button>
 
-              <Link href="/workspace/settings">
-                <Button variant="ghost" size="sm" className="gap-2">
-                  <Settings className="h-4 w-4" />
-                  Display Settings
-                </Button>
-              </Link>
+              <div className="flex items-center gap-2">
+                <Palette className="h-4 w-4 text-muted-foreground" />
+                <Select
+                  value={currentWorkspace?.theme || 'default'}
+                  onValueChange={handleThemeSelection}
+                >
+                  <SelectTrigger className="w-[140px] h-8">
+                    <SelectValue placeholder="Theme" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="default">Default</SelectItem>
+                    <SelectItem value="ocean">Ocean</SelectItem>
+                    <SelectItem value="forest">Forest</SelectItem>
+                    <SelectItem value="sunset">Sunset</SelectItem>
+                    <SelectItem value="lavender">Lavender</SelectItem>
+                    <SelectItem value="rose">Rose</SelectItem>
+                    <SelectItem value="midnight">Midnight</SelectItem>
+                    <SelectItem value="charcoal">Charcoal</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
               <Link href="/credentials">
                 <Button variant="ghost" size="sm" className="gap-2">

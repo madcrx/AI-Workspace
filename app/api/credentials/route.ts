@@ -102,7 +102,7 @@ export async function GET(req: Request) {
 
     // Return credentials without the encrypted password
     return NextResponse.json(
-      credentials.map((cred) => ({
+      credentials.map((cred: any) => ({
         id: cred.id,
         toolId: cred.toolId,
         username: cred.username,

@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Parse JSON fields
-    const parsedTutorials = tutorials.map(tutorial => ({
+    const parsedTutorials = tutorials.map((tutorial: any) => ({
       ...tutorial,
       tags: JSON.parse(tutorial.tags || '[]'),
     }));

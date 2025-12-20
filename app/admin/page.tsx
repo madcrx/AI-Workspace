@@ -315,7 +315,7 @@ export default function AdminPage() {
     }
   };
 
-  if (loading || status === 'loading') {
+  if (loading || status === 'loading' || !stats) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <p className="text-muted-foreground">Loading...</p>

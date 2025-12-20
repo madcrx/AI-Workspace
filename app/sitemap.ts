@@ -55,14 +55,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       },
     });
 
-    const toolPages = tools.map((tool) => ({
+    const toolPages = tools.map((tool: any) => ({
       url: `${baseUrl}/tools/${tool.slug}`,
       lastModified: tool.updatedAt,
       changeFrequency: 'weekly' as const,
       priority: 0.8,
     }));
 
-    const categoryPages = categories.map((category) => ({
+    const categoryPages = categories.map((category: any) => ({
       url: `${baseUrl}/tools/category/${category.slug}`,
       lastModified: new Date(),
       changeFrequency: 'daily' as const,
