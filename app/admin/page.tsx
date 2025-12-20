@@ -9,8 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Users, Wrench, Clock, Eye, MousePointer, Layers, ArrowLeft, BarChart3, TrendingUp } from 'lucide-react';
-import Link from 'next/link';
+import { Users, Wrench, Clock, Eye, MousePointer, Layers, BarChart3, TrendingUp } from 'lucide-react';
 
 interface Stats {
   totalUsers: number;
@@ -335,15 +334,7 @@ export default function AdminPage() {
     <div className="min-h-screen bg-background">
       <header className="border-b">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold">Admin Dashboard</h1>
-            <Link href="/workspace">
-              <Button variant="outline" size="sm" className="gap-2">
-                <ArrowLeft className="h-4 w-4" />
-                Back to Workspace
-              </Button>
-            </Link>
-          </div>
+          <h1 className="text-2xl font-bold">Admin Dashboard</h1>
         </div>
       </header>
 
