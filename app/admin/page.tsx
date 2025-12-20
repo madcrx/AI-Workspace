@@ -7,6 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Users, Wrench, Clock, Eye, MousePointer, Layers, ArrowLeft, BarChart3, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
 
@@ -64,6 +66,7 @@ export default function AdminPage() {
   const [imageFetchResult, setImageFetchResult] = useState<any>(null);
   const [autoScraping, setAutoScraping] = useState(false);
   const [autoScraperResult, setAutoScraperResult] = useState<any>(null);
+  const [customUrl, setCustomUrl] = useState('');
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -297,16 +300,21 @@ export default function AdminPage() {
     }
   };
 
-  const runAutoScraper = async () => {
+  const runAutoScraper = async (url?: string) => {
     setAutoScraping(true);
     setAutoScraperResult(null);
     try {
       const response = await fetch('/api/admin/auto-scraper', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ customUrl: url }),
       });
       const data = await response.json();
       setAutoScraperResult(data);
       fetchData(); // Refresh stats
+      if (url) {
+        setCustomUrl(''); // Clear custom URL after successful scrape
+      }
     } catch (error) {
       console.error('Error running auto-scraper:', error);
       setAutoScraperResult({ error: 'Failed to run auto-scraper' });
@@ -398,73 +406,83 @@ export default function AdminPage() {
           </TabsList>
 
           <TabsContent value="tools">
-            <Card>
-              <CardHeader>
-                <CardTitle>All Tools ({tools.length})</CardTitle>
-                <CardDescription>
-                  Manage all tools in the platform
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {tools.length === 0 ? (
-                  <p className="text-muted-foreground text-center py-8">
-                    No tools found
-                  </p>
-                ) : (
-                  <div className="space-y-3">
-                    {tools.map((tool) => (
-                      <div
-                        key={tool.id}
-                        className="border rounded-lg p-4 hover:bg-muted/50 transition-colors"
-                      >
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex items-start gap-3 flex-1">
-                            {tool.logoUrl && (
-                              <div className="h-10 w-10 rounded overflow-hidden flex-shrink-0">
-                                <img
-                                  src={tool.logoUrl}
-                                  alt={`${tool.name} logo`}
-                                  className="h-full w-full object-contain"
-                                />
-                              </div>
-                            )}
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
-                                <h3 className="font-semibold">{tool.name}</h3>
-                                <Badge variant="outline" className="text-xs">
-                                  {tool.category}
-                                </Badge>
-                                <Badge variant="secondary" className="text-xs">
-                                  {tool.pricing}
-                                </Badge>
-                                {tool.isActive && (
-                                  <Badge className="text-xs bg-green-500">Active</Badge>
-                                )}
-                                {tool.isFeatured && (
-                                  <Badge className="text-xs bg-purple-500">Featured</Badge>
-                                )}
-                              </div>
-                              <p className="text-sm text-muted-foreground line-clamp-2">
-                                {tool.description}
-                              </p>
-                              <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                                <span>{tool.views} views</span>
-                                <span>{tool.clicks} clicks</span>
-                                <span>{tool.reviewCount} reviews</span>
-                                {tool.rating && (
-                                  <span>⭐ {tool.rating.toFixed(1)}</span>
-                                )}
-                              </div>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold">All Tools ({tools.length})</h2>
+                  <p className="text-sm text-muted-foreground">Manage all tools in the platform</p>
+                </div>
+              </div>
+              {tools.length === 0 ? (
+                <Card>
+                  <CardContent className="py-8">
+                    <p className="text-muted-foreground text-center">No tools found</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {tools.map((tool) => (
+                    <Card key={tool.id} className="flex flex-col">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-start gap-3">
+                          {tool.logoUrl && (
+                            <div className="h-10 w-10 rounded overflow-hidden flex-shrink-0">
+                              <img
+                                src={tool.logoUrl}
+                                alt={`${tool.name} logo`}
+                                className="h-full w-full object-contain"
+                              />
                             </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <CardTitle className="text-base line-clamp-1">{tool.name}</CardTitle>
+                            <CardDescription className="line-clamp-2 mt-1">
+                              {tool.description}
+                            </CardDescription>
                           </div>
-                          <div className="flex flex-col gap-2 flex-shrink-0">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleToggleActive(tool.id, tool.isActive)}
-                            >
-                              {tool.isActive ? 'Deactivate' : 'Activate'}
-                            </Button>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="flex-1 space-y-3">
+                        <div className="flex flex-wrap gap-2">
+                          <Badge variant="outline" className="text-xs">
+                            {tool.category}
+                          </Badge>
+                          <Badge variant="secondary" className="text-xs">
+                            {tool.pricing}
+                          </Badge>
+                          {tool.isActive && (
+                            <Badge className="text-xs bg-green-500">Active</Badge>
+                          )}
+                          {tool.isFeatured && (
+                            <Badge className="text-xs bg-purple-500">Featured</Badge>
+                          )}
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
+                          <div className="text-center p-2 bg-muted/50 rounded">
+                            <p className="font-semibold">{tool.views}</p>
+                            <p>Views</p>
+                          </div>
+                          <div className="text-center p-2 bg-muted/50 rounded">
+                            <p className="font-semibold">{tool.clicks}</p>
+                            <p>Clicks</p>
+                          </div>
+                          <div className="text-center p-2 bg-muted/50 rounded">
+                            <p className="font-semibold">{tool.rating ? `⭐ ${tool.rating.toFixed(1)}` : 'N/A'}</p>
+                            <p>Rating</p>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col gap-2 pt-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleToggleActive(tool.id, tool.isActive)}
+                            className="w-full"
+                          >
+                            {tool.isActive ? 'Deactivate' : 'Activate'}
+                          </Button>
+                          <div className="grid grid-cols-2 gap-2">
                             <Button
                               size="sm"
                               variant="outline"
@@ -481,116 +499,113 @@ export default function AdminPage() {
                             </Button>
                           </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
           </TabsContent>
 
           <TabsContent value="users">
-            <Card>
-              <CardHeader>
-                <CardTitle>User Management</CardTitle>
-                <CardDescription>
-                  View and manage platform users
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {users.length === 0 ? (
-                  <p className="text-muted-foreground text-center py-8">
-                    No users found
-                  </p>
-                ) : (
-                  <div className="space-y-4">
-                    <div className="border rounded-lg overflow-hidden">
-                      <table className="w-full">
-                        <thead className="bg-muted/50">
-                          <tr>
-                            <th className="text-left p-3 font-medium">User</th>
-                            <th className="text-left p-3 font-medium">Role</th>
-                            <th className="text-left p-3 font-medium">Status</th>
-                            <th className="text-left p-3 font-medium">Workspace Apps</th>
-                            <th className="text-left p-3 font-medium">Reviews</th>
-                            <th className="text-left p-3 font-medium">Joined</th>
-                            <th className="text-right p-3 font-medium">Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {users.map((user) => (
-                            <tr key={user.id} className="border-t">
-                              <td className="p-3">
-                                <div>
-                                  <p className="font-medium">{user.name || 'No name'}</p>
-                                  <p className="text-sm text-muted-foreground">{user.email}</p>
-                                </div>
-                              </td>
-                              <td className="p-3">
-                                <Badge variant={user.role === 'ADMIN' ? 'default' : 'secondary'}>
-                                  {user.role}
-                                </Badge>
-                              </td>
-                              <td className="p-3">
-                                <Badge variant={user.isActive ? 'default' : 'destructive'}>
-                                  {user.isActive ? 'Active' : 'Inactive'}
-                                </Badge>
-                              </td>
-                              <td className="p-3">{user._count.workspaces}</td>
-                              <td className="p-3">{user._count.reviews}</td>
-                              <td className="p-3">
-                                <span className="text-sm text-muted-foreground">
-                                  {new Date(user.createdAt).toLocaleDateString()}
-                                </span>
-                              </td>
-                              <td className="p-3">
-                                <div className="flex justify-end gap-2 flex-wrap">
-                                  {user.id !== session?.user?.id && (
-                                    <>
-                                      <Button
-                                        size="sm"
-                                        variant="outline"
-                                        onClick={() => handleRoleChange(
-                                          user.id,
-                                          user.role === 'ADMIN' ? 'USER' : 'ADMIN'
-                                        )}
-                                      >
-                                        {user.role === 'ADMIN' ? 'Make User' : 'Make Admin'}
-                                      </Button>
-                                      <Button
-                                        size="sm"
-                                        variant={user.isActive ? 'secondary' : 'default'}
-                                        onClick={() => handleToggleUserActive(user.id, user.isActive)}
-                                      >
-                                        {user.isActive ? 'Deactivate' : 'Activate'}
-                                      </Button>
-                                      <Button
-                                        size="sm"
-                                        variant="outline"
-                                        onClick={() => handleResetPassword(user.id, user.email)}
-                                      >
-                                        Reset Password
-                                      </Button>
-                                      <Button
-                                        size="sm"
-                                        variant="destructive"
-                                        onClick={() => handleDeleteUser(user.id)}
-                                      >
-                                        Delete
-                                      </Button>
-                                    </>
-                                  )}
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold">User Management</h2>
+                  <p className="text-sm text-muted-foreground">View and manage platform users</p>
+                </div>
+              </div>
+              {users.length === 0 ? (
+                <Card>
+                  <CardContent className="py-8">
+                    <p className="text-muted-foreground text-center">No users found</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {users.map((user) => (
+                    <Card key={user.id} className="flex flex-col">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <CardTitle className="text-base">{user.name || 'No name'}</CardTitle>
+                            <CardDescription className="text-xs mt-1">{user.email}</CardDescription>
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <Badge variant={user.role === 'ADMIN' ? 'default' : 'secondary'} className="text-xs">
+                              {user.role}
+                            </Badge>
+                            <Badge variant={user.isActive ? 'default' : 'destructive'} className="text-xs">
+                              {user.isActive ? 'Active' : 'Inactive'}
+                            </Badge>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="flex-1 space-y-3">
+                        <div className="grid grid-cols-3 gap-2 text-xs">
+                          <div className="text-center p-2 bg-muted/50 rounded">
+                            <p className="font-semibold">{user._count.workspaces}</p>
+                            <p className="text-muted-foreground">Workspaces</p>
+                          </div>
+                          <div className="text-center p-2 bg-muted/50 rounded">
+                            <p className="font-semibold">{user._count.reviews}</p>
+                            <p className="text-muted-foreground">Reviews</p>
+                          </div>
+                          <div className="text-center p-2 bg-muted/50 rounded">
+                            <p className="font-semibold text-xs">{new Date(user.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
+                            <p className="text-muted-foreground">Joined</p>
+                          </div>
+                        </div>
+
+                        {user.id !== session?.user?.id ? (
+                          <div className="flex flex-col gap-2 pt-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleRoleChange(
+                                user.id,
+                                user.role === 'ADMIN' ? 'USER' : 'ADMIN'
+                              )}
+                              className="w-full"
+                            >
+                              {user.role === 'ADMIN' ? 'Make User' : 'Make Admin'}
+                            </Button>
+                            <div className="grid grid-cols-2 gap-2">
+                              <Button
+                                size="sm"
+                                variant={user.isActive ? 'secondary' : 'default'}
+                                onClick={() => handleToggleUserActive(user.id, user.isActive)}
+                              >
+                                {user.isActive ? 'Deactivate' : 'Activate'}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleResetPassword(user.id, user.email)}
+                              >
+                                Reset Pwd
+                              </Button>
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleDeleteUser(user.id)}
+                              className="w-full"
+                            >
+                              Delete User
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="text-center py-4 text-xs text-muted-foreground">
+                            You cannot modify your own account
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
           </TabsContent>
 
           <TabsContent value="analytics">
@@ -750,19 +765,44 @@ export default function AdminPage() {
                   </ol>
                 </div>
 
-                <div className="border-t pt-4">
-                  <p className="text-sm font-medium mb-2">Manual Trigger:</p>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    Run the auto-scraper manually to discover tools right now
-                  </p>
-                  <Button
-                    onClick={runAutoScraper}
-                    disabled={autoScraping}
-                    className="w-full"
-                    size="lg"
-                  >
-                    {autoScraping ? '🔄 Discovering Tools...' : '🚀 Run Auto-Scraper Now'}
-                  </Button>
+                <div className="border-t pt-4 space-y-4">
+                  <div>
+                    <p className="text-sm font-medium mb-2">Manual Trigger:</p>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Run the auto-scraper manually to discover tools right now
+                    </p>
+                    <Button
+                      onClick={() => runAutoScraper()}
+                      disabled={autoScraping}
+                      className="w-full"
+                      size="lg"
+                    >
+                      {autoScraping ? '🔄 Discovering Tools...' : '🚀 Run Auto-Scraper Now'}
+                    </Button>
+                  </div>
+
+                  <div className="border-t pt-4">
+                    <Label className="text-sm font-medium mb-2">Custom URL Scraper:</Label>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Scrape a specific website URL to extract AI tool information
+                    </p>
+                    <div className="flex gap-2">
+                      <Input
+                        type="url"
+                        placeholder="https://example.com/ai-tools"
+                        value={customUrl}
+                        onChange={(e) => setCustomUrl(e.target.value)}
+                        disabled={autoScraping}
+                      />
+                      <Button
+                        onClick={() => runAutoScraper(customUrl)}
+                        disabled={autoScraping || !customUrl}
+                        size="lg"
+                      >
+                        {autoScraping ? '🔄 Scraping...' : '🔍 Scrape URL'}
+                      </Button>
+                    </div>
+                  </div>
                 </div>
 
                 {autoScraperResult && (

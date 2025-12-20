@@ -306,6 +306,132 @@ export class AutoScraper {
   }
 
   /**
+   * Scrape a custom URL provided by the user
+   */
+  async scrapeCustomUrl(url: string): Promise<ScraperResult> {
+    this.startTime = Date.now();
+    this.errors = [];
+
+    const tools: ScrapedTool[] = [];
+
+    try {
+      console.log(`🔍 Scraping custom URL: ${url}`);
+
+      // Fetch the page
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const html = await response.text();
+      const $ = cheerio.load(html);
+
+      // Try multiple extraction strategies
+
+      // Strategy 1: Look for common AI tool listing patterns
+      const toolElements = $('[class*="tool"], [class*="card"], [class*="item"], article, .product, .app').slice(0, 20);
+
+      toolElements.each((i, elem) => {
+        try {
+          const $elem = $(elem);
+
+          // Extract name
+          const name =
+            $elem.find('h1, h2, h3, [class*="title"], [class*="name"]').first().text().trim() ||
+            $elem.find('a').first().text().trim();
+
+          if (!name || name.length < 3) return;
+
+          // Extract description
+          const description =
+            $elem.find('p, [class*="description"], [class*="desc"]').first().text().trim() ||
+            $elem.text().substring(0, 200).trim();
+
+          // Extract URL
+          let websiteUrl = $elem.find('a[href]').first().attr('href') || '';
+          if (websiteUrl && !websiteUrl.startsWith('http')) {
+            const baseUrl = new URL(url);
+            websiteUrl = `${baseUrl.protocol}//${baseUrl.host}${websiteUrl.startsWith('/') ? '' : '/'}${websiteUrl}`;
+          }
+
+          // Extract logo/image
+          const logoUrl = $elem.find('img').first().attr('src') || undefined;
+
+          if (name && description && description.length > 20) {
+            tools.push({
+              name: name.substring(0, 100),
+              websiteUrl: websiteUrl || url,
+              description: description.substring(0, 500),
+              category: this.categorizeFromDescription(description),
+              pricing: this.detectPricing($elem.text()),
+              logoUrl,
+            });
+          }
+        } catch (error) {
+          // Skip individual tool extraction errors
+        }
+      });
+
+      // Strategy 2: If no tools found, try to extract from the page itself
+      if (tools.length === 0) {
+        const pageTitle = $('title').text() || $('h1').first().text() || 'Scraped Tool';
+        const pageDescription =
+          $('meta[name="description"]').attr('content') ||
+          $('meta[property="og:description"]').attr('content') ||
+          $('p').first().text() ||
+          'Tool scraped from custom URL';
+
+        if (pageTitle && pageDescription && pageDescription.length > 20) {
+          tools.push({
+            name: pageTitle.substring(0, 100),
+            websiteUrl: url,
+            description: pageDescription.substring(0, 500),
+            category: this.categorizeFromDescription(pageDescription),
+            pricing: this.detectPricing($('body').text()),
+          });
+        }
+      }
+
+      if (tools.length === 0) {
+        this.errors.push('No tools found on this page. The page structure might not be compatible with auto-scraping.');
+      }
+
+    } catch (error) {
+      this.errors.push(`Custom URL scraping failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+
+    return await this.processScrapedTools(tools, `Custom URL: ${url}`);
+  }
+
+  /**
+   * Detect pricing from text content
+   */
+  private detectPricing(text: string): string {
+    const lowerText = text.toLowerCase();
+
+    if (lowerText.includes('free') && (lowerText.includes('premium') || lowerText.includes('paid'))) {
+      return 'FREEMIUM';
+    }
+    if (lowerText.includes('subscription') || lowerText.includes('monthly') || lowerText.includes('yearly')) {
+      return 'SUBSCRIPTION';
+    }
+    if (lowerText.includes('free') || lowerText.includes('open source')) {
+      return 'FREE';
+    }
+    if (lowerText.includes('pay') || lowerText.includes('buy') || lowerText.includes('purchase')) {
+      return 'PAID';
+    }
+
+    return 'FREEMIUM'; // Default
+  }
+
+  /**
    * Generate URL-friendly slug from tool name
    */
   private generateSlug(name: string): string {

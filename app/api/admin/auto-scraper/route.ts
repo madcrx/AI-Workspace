@@ -12,10 +12,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    console.log('🚀 Manual auto-scraper triggered by admin');
+    const body = await request.json();
+    const { customUrl } = body;
 
     const scraper = new AutoScraper();
-    const results = await scraper.scrapeAll('MANUAL');
+    let results;
+
+    if (customUrl) {
+      console.log('🚀 Manual custom URL scraper triggered by admin:', customUrl);
+      results = [await scraper.scrapeCustomUrl(customUrl)];
+    } else {
+      console.log('🚀 Manual auto-scraper triggered by admin');
+      results = await scraper.scrapeAll('MANUAL');
+    }
 
     const summary = {
       totalSources: results.length,
