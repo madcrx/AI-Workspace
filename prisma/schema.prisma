@@ -22,9 +22,22 @@ model User {
   workspaces    Workspace[]
   reviews       Review[]
   credentials   ToolCredential[]
+  preferences   UserPreferences?
   image         String?
   accounts      Account[]
   sessions      Session[]
+}
+
+model UserPreferences {
+  id            String     @id @default(cuid())
+  userId        String     @unique
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  widgets       String     @default("[]")  // JSON array of widget configurations
+  theme         String     @default("default")
+  notes         String     @default("")    // Notepad widget content
+  todos         String     @default("[]")  // Todo widget items
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
 }
 
 model Account {
