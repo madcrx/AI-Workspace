@@ -10,6 +10,8 @@ interface WeatherData {
   condition: string;
   location: string;
   humidity: number;
+  windSpeed: number;
+  precipitation: number;
 }
 
 interface WeatherWidgetProps {
@@ -52,7 +54,7 @@ export function WeatherWidget({ onSettings, settings }: WeatherWidgetProps) {
 
       // Using Open-Meteo API (free, no API key required)
       const response = await fetch(
-        `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,weather_code&temperature_unit=${unit}`
+        `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,precipitation&temperature_unit=${unit}`
       );
       const data = await response.json();
 
@@ -67,6 +69,8 @@ export function WeatherWidget({ onSettings, settings }: WeatherWidgetProps) {
         condition,
         location: name,
         humidity: data.current?.relative_humidity_2m || 0,
+        windSpeed: Math.round(data.current?.wind_speed_10m || 0),
+        precipitation: data.current?.precipitation || 0,
       });
       setLoading(false);
     } catch (error) {
@@ -111,9 +115,12 @@ export function WeatherWidget({ onSettings, settings }: WeatherWidgetProps) {
                 <div className="text-xs text-muted-foreground">{weather.condition}</div>
               </div>
             </div>
-            <div className="text-xs text-muted-foreground">
-              <div>{weather.location}</div>
-              <div>Humidity: {weather.humidity}%</div>
+            <div className="text-xs text-muted-foreground space-y-1">
+              <div className="font-medium">{weather.location}</div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>Wind: {weather.windSpeed} {unit === 'celsius' ? 'km/h' : 'mph'}</div>
+                <div>Rain: {weather.precipitation} mm</div>
+              </div>
             </div>
           </div>
         ) : (
