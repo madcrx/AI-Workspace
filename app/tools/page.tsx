@@ -159,12 +159,20 @@ export default function ToolsPage() {
             <span className="text-xl font-bold">AI Workspace</span>
           </Link>
           <nav className="flex items-center gap-4">
-            <Link href="/auth/signin">
-              <Button variant="ghost">Sign In</Button>
-            </Link>
-            <Link href="/auth/signup">
-              <Button>Get Started</Button>
-            </Link>
+            {session ? (
+              <Link href="/workspace">
+                <Button variant="default">My Workspace</Button>
+              </Link>
+            ) : (
+              <>
+                <Link href="/auth/signin">
+                  <Button variant="ghost">Sign In</Button>
+                </Link>
+                <Link href="/auth/signup">
+                  <Button>Get Started</Button>
+                </Link>
+              </>
+            )}
           </nav>
         </div>
       </header>

@@ -15,9 +15,11 @@ interface WeatherData {
 interface WeatherWidgetProps {
   onSettings?: () => void;
   settings?: {
+    location?: string;
     city?: string;
     latitude?: number;
     longitude?: number;
+    unit?: 'fahrenheit' | 'celsius';
   };
 }
 
@@ -25,20 +27,32 @@ export function WeatherWidget({ onSettings, settings }: WeatherWidgetProps) {
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const city = settings?.city || 'New York';
-  const latitude = settings?.latitude || 40.7128;
-  const longitude = settings?.longitude || -74.006;
+  const location = settings?.location || settings?.city || 'New York';
+  const unit = settings?.unit || 'fahrenheit';
 
   useEffect(() => {
     fetchWeather();
-  }, [latitude, longitude]);
+  }, [location, unit]);
 
   const fetchWeather = async () => {
     try {
       setLoading(true);
+      // Using geocoding to get coordinates from location name
+      const geocodeResponse = await fetch(
+        `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(location)}&count=1&language=en&format=json`
+      );
+      const geocodeData = await geocodeResponse.json();
+
+      if (!geocodeData.results || geocodeData.results.length === 0) {
+        setLoading(false);
+        return;
+      }
+
+      const { latitude, longitude, name } = geocodeData.results[0];
+
       // Using Open-Meteo API (free, no API key required)
       const response = await fetch(
-        `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,weather_code&temperature_unit=fahrenheit`
+        `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,weather_code&temperature_unit=${unit}`
       );
       const data = await response.json();
 
@@ -51,7 +65,7 @@ export function WeatherWidget({ onSettings, settings }: WeatherWidgetProps) {
       setWeather({
         temp: Math.round(data.current?.temperature_2m || 0),
         condition,
-        location: city,
+        location: name,
         humidity: data.current?.relative_humidity_2m || 0,
       });
       setLoading(false);
@@ -77,16 +91,11 @@ export function WeatherWidget({ onSettings, settings }: WeatherWidgetProps) {
 
   return (
     <Card className="w-full h-full">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+      <CardHeader className="pb-3">
         <CardTitle className="text-sm flex items-center gap-2">
           <Cloud className="h-4 w-4" />
           Weather
         </CardTitle>
-        {onSettings && (
-          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onSettings}>
-            <Settings className="h-4 w-4" />
-          </Button>
-        )}
       </CardHeader>
       <CardContent>
         {loading ? (
@@ -96,7 +105,9 @@ export function WeatherWidget({ onSettings, settings }: WeatherWidgetProps) {
             <div className="flex items-center justify-between">
               {getWeatherIcon()}
               <div className="text-right">
-                <div className="text-2xl font-bold">{weather.temp}°F</div>
+                <div className="text-2xl font-bold">
+                  {weather.temp}°{unit === 'celsius' ? 'C' : 'F'}
+                </div>
                 <div className="text-xs text-muted-foreground">{weather.condition}</div>
               </div>
             </div>

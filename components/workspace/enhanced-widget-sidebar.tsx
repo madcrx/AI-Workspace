@@ -313,19 +313,34 @@ export function EnhancedWidgetSidebar() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             {settingsWidget?.type === 'weather' && (
-              <div className="space-y-2">
-                <Label>Location</Label>
-                <Input
-                  value={widgetSettings.location || 'New York'}
-                  onChange={(e) =>
-                    setWidgetSettings({ ...widgetSettings, location: e.target.value })
-                  }
-                  placeholder="Enter city or location"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Enter a city name (e.g., "New York", "London", "Tokyo")
-                </p>
-              </div>
+              <>
+                <div className="space-y-2">
+                  <Label>Location</Label>
+                  <Input
+                    value={widgetSettings.location || 'New York'}
+                    onChange={(e) =>
+                      setWidgetSettings({ ...widgetSettings, location: e.target.value })
+                    }
+                    placeholder="Enter city or location"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Enter a city name (e.g., "New York", "London", "Tokyo")
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label>Temperature Unit</Label>
+                  <select
+                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                    value={widgetSettings.unit || 'fahrenheit'}
+                    onChange={(e) =>
+                      setWidgetSettings({ ...widgetSettings, unit: e.target.value })
+                    }
+                  >
+                    <option value="fahrenheit">Fahrenheit (°F)</option>
+                    <option value="celsius">Celsius (°C)</option>
+                  </select>
+                </div>
+              </>
             )}
 
             {settingsWidget?.type === 'clock' && (

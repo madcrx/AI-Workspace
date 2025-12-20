@@ -99,16 +99,11 @@ export function CryptoWidget({ onSettings, settings }: CryptoWidgetProps) {
 
   return (
     <Card className="w-full h-full">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+      <CardHeader className="pb-3">
         <CardTitle className="text-sm flex items-center gap-2">
           <span>₿</span>
           Crypto Ticker
         </CardTitle>
-        {onSettings && (
-          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onSettings}>
-            <Settings className="h-4 w-4" />
-          </Button>
-        )}
       </CardHeader>
       <CardContent>
         {loading ? (
