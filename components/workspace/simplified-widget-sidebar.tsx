@@ -394,59 +394,57 @@ export function SimplifiedWidgetSidebar({
         </div>
       </aside>
 
-      {/* Widget Selector Panel (Collapsible) */}
-      <div
-        className={`fixed left-80 top-16 h-[calc(100vh-4rem)] w-96 bg-background border-r z-20 overflow-y-auto transition-transform duration-300 ${
-          selectorOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
-      >
-        <div className="p-4 border-b">
-          <h3 className="font-semibold text-lg">Widget Selector</h3>
-          <p className="text-xs text-muted-foreground mt-1">Select and configure your widgets</p>
-        </div>
+      {/* Widget Selector Panel (Only visible when selectorOpen is true) */}
+      {selectorOpen && (
+        <div className="fixed left-80 top-16 h-[calc(100vh-4rem)] w-96 bg-background border-r z-20 overflow-y-auto">
+          <div className="p-4 border-b">
+            <h3 className="font-semibold text-lg">Widget Selector</h3>
+            <p className="text-xs text-muted-foreground mt-1">Select and configure your widgets</p>
+          </div>
 
-        <div className="divide-y">
-          {AVAILABLE_WIDGETS.map((widget) => {
-            const isSelected = widgetConfigs.some(w => w.type === widget.id);
-            const isExpanded = expandedWidget === widget.id;
+          <div className="divide-y">
+            {AVAILABLE_WIDGETS.map((widget) => {
+              const isSelected = widgetConfigs.some(w => w.type === widget.id);
+              const isExpanded = expandedWidget === widget.id;
 
-            return (
-              <div key={widget.id}>
-                <div className="flex items-center p-3 hover:bg-muted/50 transition-colors">
-                  <Checkbox
-                    checked={isSelected}
-                    onCheckedChange={() => toggleWidget(widget.id)}
-                    className="mr-3"
-                  />
-                  <label
-                    className="flex-1 cursor-pointer font-medium text-sm"
-                    onClick={() => toggleWidget(widget.id)}
-                  >
-                    {widget.name}
-                  </label>
-
-                  {widget.hasSettings && isSelected && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setExpandedWidget(isExpanded ? null : widget.id)}
-                      className="h-7 w-7 p-0"
+              return (
+                <div key={widget.id}>
+                  <div className="flex items-center p-3 hover:bg-muted/50 transition-colors">
+                    <Checkbox
+                      checked={isSelected}
+                      onCheckedChange={() => toggleWidget(widget.id)}
+                      className="mr-3"
+                    />
+                    <label
+                      className="flex-1 cursor-pointer font-medium text-sm"
+                      onClick={() => toggleWidget(widget.id)}
                     >
-                      {isExpanded ? (
-                        <ChevronDown className="h-4 w-4" />
-                      ) : (
-                        <ChevronRight className="h-4 w-4" />
-                      )}
-                    </Button>
-                  )}
-                </div>
+                      {widget.name}
+                    </label>
 
-                {widget.hasSettings && isSelected && isExpanded && renderWidgetSettings(widget)}
-              </div>
-            );
-          })}
+                    {widget.hasSettings && isSelected && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setExpandedWidget(isExpanded ? null : widget.id)}
+                        className="h-7 w-7 p-0"
+                      >
+                        {isExpanded ? (
+                          <ChevronDown className="h-4 w-4" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4" />
+                        )}
+                      </Button>
+                    )}
+                  </div>
+
+                  {widget.hasSettings && isSelected && isExpanded && renderWidgetSettings(widget)}
+                </div>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
     </>
   );
 }
