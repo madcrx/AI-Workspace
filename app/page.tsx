@@ -5,12 +5,11 @@ import Link from 'next/link';
 import Script from 'next/script';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Sparkles, Layout, Zap, Shield, Search, Users, Settings } from 'lucide-react';
+import { Sparkles, Layout, Zap, Shield, Search, Users } from 'lucide-react';
 import { FeaturedToolsCarousel } from '@/components/featured-tools-carousel';
 
 export default function HomePage() {
   const { data: session } = useSession();
-  const isAdmin = session?.user?.role === 'ADMIN';
 
   const structuredData = {
     '@context': 'https://schema.org',
@@ -47,14 +46,6 @@ export default function HomePage() {
             <span className="text-xl font-bold">AI Workspace</span>
           </div>
           <nav className="flex items-center gap-4">
-            {isAdmin && (
-              <Link href="/admin">
-                <Button variant="ghost" size="icon" className="relative" title="Admin Dashboard">
-                  <Settings className="h-5 w-5" />
-                  <span className="absolute -top-1 -right-1 h-2 w-2 bg-primary rounded-full" />
-                </Button>
-              </Link>
-            )}
             <Link href="/tools">
               <Button variant="ghost">Explore Tools</Button>
             </Link>

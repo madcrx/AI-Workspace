@@ -15,7 +15,7 @@ import { StockWidget } from './widgets/stock-widget';
 import { CalendarWidget } from './widgets/calendar-widget';
 import { TodoWidget } from './widgets/todo-widget';
 import { RSSWidget } from './widgets/rss-widget';
-import { ChevronDown, ChevronRight, Settings as SettingsIcon } from 'lucide-react';
+import { ChevronDown, ChevronRight, Settings as SettingsIcon, Palette } from 'lucide-react';
 
 interface WidgetSettings {
   timezone?: string;
@@ -98,9 +98,20 @@ const AVAILABLE_WIDGETS = [
 interface SimplifiedWidgetSidebarProps {
   selectorOpen: boolean;
   onSelectorToggle: () => void;
+  workspaceZoom: number;
+  onZoomChange: (zoom: number) => void;
+  currentTheme: string;
+  onThemeChange: (theme: string) => void;
 }
 
-export function SimplifiedWidgetSidebar({ selectorOpen, onSelectorToggle }: SimplifiedWidgetSidebarProps) {
+export function SimplifiedWidgetSidebar({
+  selectorOpen,
+  onSelectorToggle,
+  workspaceZoom,
+  onZoomChange,
+  currentTheme,
+  onThemeChange
+}: SimplifiedWidgetSidebarProps) {
   const [widgetConfigs, setWidgetConfigs] = useState<WidgetConfig[]>([]);
   const [expandedWidget, setExpandedWidget] = useState<string | null>(null);
   const [widgetSettings, setWidgetSettings] = useState<Map<string, WidgetSettings>>(new Map());
@@ -296,6 +307,57 @@ export function SimplifiedWidgetSidebar({ selectorOpen, onSelectorToggle }: Simp
     <>
       {/* Left Sidebar - Widget Display (Always Visible) */}
       <aside className="fixed left-0 top-16 h-[calc(100vh-4rem)] bg-muted/30 border-r w-80 z-20 overflow-y-auto p-4">
+        {/* Zoom and Theme Controls */}
+        <div className="mb-4 space-y-3 pb-4 border-b">
+          {/* Zoom Control */}
+          <div>
+            <label className="text-xs font-medium mb-2 block">Workspace Zoom</label>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onZoomChange(Math.max(50, workspaceZoom - 10))}
+                className="h-7 w-7 p-0"
+              >
+                −
+              </Button>
+              <span className="text-xs font-medium w-12 text-center">{workspaceZoom}%</span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onZoomChange(Math.min(150, workspaceZoom + 10))}
+                className="h-7 w-7 p-0"
+              >
+                +
+              </Button>
+            </div>
+          </div>
+
+          {/* Theme Selector */}
+          <div>
+            <label className="text-xs font-medium mb-2 block flex items-center gap-1">
+              <Palette className="h-3 w-3" />
+              Theme
+            </label>
+            <Select value={currentTheme} onValueChange={onThemeChange}>
+              <SelectTrigger className="h-7 text-xs">
+                <SelectValue placeholder="Theme" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="default">Default</SelectItem>
+                <SelectItem value="ocean">Ocean</SelectItem>
+                <SelectItem value="forest">Forest</SelectItem>
+                <SelectItem value="sunset">Sunset</SelectItem>
+                <SelectItem value="lavender">Lavender</SelectItem>
+                <SelectItem value="rose">Rose</SelectItem>
+                <SelectItem value="midnight">Midnight</SelectItem>
+                <SelectItem value="charcoal">Charcoal</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Widgets */}
         <div className="space-y-4">
           {widgetConfigs.map((config) => {
             const widgetDef = AVAILABLE_WIDGETS.find(w => w.id === config.type);
@@ -313,7 +375,7 @@ export function SimplifiedWidgetSidebar({ selectorOpen, onSelectorToggle }: Simp
           {widgetConfigs.length === 0 && (
             <div className="text-center text-sm text-muted-foreground py-8">
               <p>No widgets selected</p>
-              <p className="text-xs mt-2">Click "Show Widgets" to add</p>
+              <p className="text-xs mt-2">Click "Add Widgets" to start</p>
             </div>
           )}
         </div>

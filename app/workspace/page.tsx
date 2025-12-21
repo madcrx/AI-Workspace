@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { WorkspaceGrid } from '@/components/workspace/workspace-grid';
 import { ToolPicker } from '@/components/workspace/tool-picker';
 import { SimplifiedWidgetSidebar } from '@/components/workspace/simplified-widget-sidebar';
-import { Plus, Settings, LogOut, Sparkles, Palette, Search, ChevronRight, ChevronLeft, Key } from 'lucide-react';
+import { Plus, Settings, LogOut, Sparkles, Search, ChevronRight, ChevronLeft, Key } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import Link from 'next/link';
 
@@ -367,49 +367,6 @@ export default function WorkspacePage() {
                 {sidebarOpen ? 'Hide' : 'Show'} Tools
               </Button>
 
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">Zoom:</span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setWorkspaceZoom(Math.max(50, workspaceZoom - 10))}
-                  className="h-8 w-8 p-0"
-                >
-                  −
-                </Button>
-                <span className="text-sm font-medium w-12 text-center">{workspaceZoom}%</span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setWorkspaceZoom(Math.min(150, workspaceZoom + 10))}
-                  className="h-8 w-8 p-0"
-                >
-                  +
-                </Button>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Palette className="h-4 w-4 text-muted-foreground" />
-                <Select
-                  value={currentWorkspace?.theme || 'default'}
-                  onValueChange={handleThemeSelection}
-                >
-                  <SelectTrigger className="w-[140px] h-8">
-                    <SelectValue placeholder="Theme" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="default">Default</SelectItem>
-                    <SelectItem value="ocean">Ocean</SelectItem>
-                    <SelectItem value="forest">Forest</SelectItem>
-                    <SelectItem value="sunset">Sunset</SelectItem>
-                    <SelectItem value="lavender">Lavender</SelectItem>
-                    <SelectItem value="rose">Rose</SelectItem>
-                    <SelectItem value="midnight">Midnight</SelectItem>
-                    <SelectItem value="charcoal">Charcoal</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
               <Link href="/credentials">
                 <Button variant="ghost" size="sm" className="gap-2">
                   <Key className="h-4 w-4" />
@@ -556,6 +513,10 @@ export default function WorkspacePage() {
       <SimplifiedWidgetSidebar
         selectorOpen={widgetSidebarOpen}
         onSelectorToggle={() => setWidgetSidebarOpen(!widgetSidebarOpen)}
+        workspaceZoom={workspaceZoom}
+        onZoomChange={setWorkspaceZoom}
+        currentTheme={currentWorkspace?.theme || 'default'}
+        onThemeChange={handleThemeSelection}
       />
 
       <ToolPicker
