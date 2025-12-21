@@ -354,7 +354,7 @@ export default function WorkspacePage() {
                 className="gap-2"
               >
                 <Settings className="h-4 w-4" />
-                {widgetSidebarOpen ? 'Hide' : 'Show'} Widgets
+                {widgetSidebarOpen ? 'Hide' : 'Add'} Widgets
               </Button>
 
               <Button
@@ -439,7 +439,7 @@ export default function WorkspacePage() {
 
       <div className="flex justify-center">
         <main
-          className={`w-full max-w-7xl px-4 py-8 transition-all duration-300 ${sidebarOpen ? 'pr-[calc(12.5%+1rem)]' : ''} ${widgetSidebarOpen ? 'pl-[calc(20rem+1rem)]' : ''}`}
+          className={`w-full max-w-7xl px-4 py-8 pl-[calc(20rem+1rem)] transition-all duration-300 ${sidebarOpen ? 'pr-[calc(12.5%+1rem)]' : ''}`}
           style={{
             transform: `scale(${workspaceZoom / 100})`,
             transformOrigin: 'top center'
@@ -554,8 +554,8 @@ export default function WorkspacePage() {
 
       {/* Widget Sidebar */}
       <SimplifiedWidgetSidebar
-        isOpen={widgetSidebarOpen}
-        onClose={() => setWidgetSidebarOpen(false)}
+        selectorOpen={widgetSidebarOpen}
+        onSelectorToggle={() => setWidgetSidebarOpen(!widgetSidebarOpen)}
       />
 
       <ToolPicker

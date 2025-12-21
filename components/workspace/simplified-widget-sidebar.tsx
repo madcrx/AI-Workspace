@@ -21,7 +21,9 @@ interface WidgetSettings {
   timezone?: string;
   location?: string;
   coins?: string[];
+  coinsInput?: string;
   symbols?: string[];
+  symbolsInput?: string;
   unit?: 'celsius' | 'fahrenheit';
   feedUrl?: string;
 }
@@ -94,11 +96,11 @@ const AVAILABLE_WIDGETS = [
 ];
 
 interface SimplifiedWidgetSidebarProps {
-  isOpen: boolean;
-  onClose: () => void;
+  selectorOpen: boolean;
+  onSelectorToggle: () => void;
 }
 
-export function SimplifiedWidgetSidebar({ isOpen, onClose }: SimplifiedWidgetSidebarProps) {
+export function SimplifiedWidgetSidebar({ selectorOpen, onSelectorToggle }: SimplifiedWidgetSidebarProps) {
   const [widgetConfigs, setWidgetConfigs] = useState<WidgetConfig[]>([]);
   const [expandedWidget, setExpandedWidget] = useState<string | null>(null);
   const [widgetSettings, setWidgetSettings] = useState<Map<string, WidgetSettings>>(new Map());
@@ -239,11 +241,16 @@ export function SimplifiedWidgetSidebar({ isOpen, onClose }: SimplifiedWidgetSid
           <div>
             <label className="text-xs font-medium mb-1 block">Coins (comma-separated)</label>
             <Input
-              value={settings.coins?.join(', ') || ''}
-              onChange={(e) => updateWidgetSettings(widget.id, {
-                ...settings,
-                coins: e.target.value.split(',').map(s => s.trim()).filter(Boolean)
-              })}
+              value={settings.coinsInput || settings.coins?.join(', ') || ''}
+              onChange={(e) => {
+                const inputValue = e.target.value;
+                const coinsArray = inputValue.split(',').map(s => s.trim()).filter(Boolean);
+                updateWidgetSettings(widget.id, {
+                  ...settings,
+                  coinsInput: inputValue,
+                  coins: coinsArray
+                });
+              }}
               placeholder="BTC, ETH, SOL"
               className="h-7 text-xs"
             />
@@ -254,11 +261,16 @@ export function SimplifiedWidgetSidebar({ isOpen, onClose }: SimplifiedWidgetSid
           <div>
             <label className="text-xs font-medium mb-1 block">Stock Symbols (comma-separated)</label>
             <Input
-              value={settings.symbols?.join(', ') || ''}
-              onChange={(e) => updateWidgetSettings(widget.id, {
-                ...settings,
-                symbols: e.target.value.split(',').map(s => s.trim()).filter(Boolean)
-              })}
+              value={settings.symbolsInput || settings.symbols?.join(', ') || ''}
+              onChange={(e) => {
+                const inputValue = e.target.value;
+                const symbolsArray = inputValue.split(',').map(s => s.trim()).filter(Boolean);
+                updateWidgetSettings(widget.id, {
+                  ...settings,
+                  symbolsInput: inputValue,
+                  symbols: symbolsArray
+                });
+              }}
               placeholder="AAPL, GOOGL, MSFT"
               className="h-7 text-xs"
             />
@@ -282,12 +294,8 @@ export function SimplifiedWidgetSidebar({ isOpen, onClose }: SimplifiedWidgetSid
 
   return (
     <>
-      {/* Left Sidebar - Widget Display */}
-      <aside
-        className={`fixed left-0 top-16 h-[calc(100vh-4rem)] bg-muted/30 border-r transition-transform duration-300 ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
-        } w-80 z-20 overflow-y-auto p-4`}
-      >
+      {/* Left Sidebar - Widget Display (Always Visible) */}
+      <aside className="fixed left-0 top-16 h-[calc(100vh-4rem)] bg-muted/30 border-r w-80 z-20 overflow-y-auto p-4">
         <div className="space-y-4">
           {widgetConfigs.map((config) => {
             const widgetDef = AVAILABLE_WIDGETS.find(w => w.id === config.type);
@@ -305,63 +313,65 @@ export function SimplifiedWidgetSidebar({ isOpen, onClose }: SimplifiedWidgetSid
           {widgetConfigs.length === 0 && (
             <div className="text-center text-sm text-muted-foreground py-8">
               <p>No widgets selected</p>
-              <p className="text-xs mt-2">Select widgets to display</p>
+              <p className="text-xs mt-2">Click "Show Widgets" to add</p>
             </div>
           )}
         </div>
       </aside>
 
-      {/* Widget Selector Overlay (only when sidebar is open) */}
-      {isOpen && (
-        <div className="fixed left-80 top-16 h-[calc(100vh-4rem)] w-96 bg-background border-r z-20 overflow-y-auto">
-          <div className="p-4 border-b">
-            <h3 className="font-semibold text-lg">Widget Selector</h3>
-            <p className="text-xs text-muted-foreground mt-1">Select and configure your widgets</p>
-          </div>
-
-          <div className="divide-y">
-            {AVAILABLE_WIDGETS.map((widget) => {
-              const isSelected = widgetConfigs.some(w => w.type === widget.id);
-              const isExpanded = expandedWidget === widget.id;
-
-              return (
-                <div key={widget.id}>
-                  <div className="flex items-center p-3 hover:bg-muted/50 transition-colors">
-                    <Checkbox
-                      checked={isSelected}
-                      onCheckedChange={() => toggleWidget(widget.id)}
-                      className="mr-3"
-                    />
-                    <label
-                      className="flex-1 cursor-pointer font-medium text-sm"
-                      onClick={() => toggleWidget(widget.id)}
-                    >
-                      {widget.name}
-                    </label>
-
-                    {widget.hasSettings && isSelected && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setExpandedWidget(isExpanded ? null : widget.id)}
-                        className="h-7 w-7 p-0"
-                      >
-                        {isExpanded ? (
-                          <ChevronDown className="h-4 w-4" />
-                        ) : (
-                          <ChevronRight className="h-4 w-4" />
-                        )}
-                      </Button>
-                    )}
-                  </div>
-
-                  {widget.hasSettings && isSelected && isExpanded && renderWidgetSettings(widget)}
-                </div>
-              );
-            })}
-          </div>
+      {/* Widget Selector Panel (Collapsible) */}
+      <div
+        className={`fixed left-80 top-16 h-[calc(100vh-4rem)] w-96 bg-background border-r z-20 overflow-y-auto transition-transform duration-300 ${
+          selectorOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        <div className="p-4 border-b">
+          <h3 className="font-semibold text-lg">Widget Selector</h3>
+          <p className="text-xs text-muted-foreground mt-1">Select and configure your widgets</p>
         </div>
-      )}
+
+        <div className="divide-y">
+          {AVAILABLE_WIDGETS.map((widget) => {
+            const isSelected = widgetConfigs.some(w => w.type === widget.id);
+            const isExpanded = expandedWidget === widget.id;
+
+            return (
+              <div key={widget.id}>
+                <div className="flex items-center p-3 hover:bg-muted/50 transition-colors">
+                  <Checkbox
+                    checked={isSelected}
+                    onCheckedChange={() => toggleWidget(widget.id)}
+                    className="mr-3"
+                  />
+                  <label
+                    className="flex-1 cursor-pointer font-medium text-sm"
+                    onClick={() => toggleWidget(widget.id)}
+                  >
+                    {widget.name}
+                  </label>
+
+                  {widget.hasSettings && isSelected && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setExpandedWidget(isExpanded ? null : widget.id)}
+                      className="h-7 w-7 p-0"
+                    >
+                      {isExpanded ? (
+                        <ChevronDown className="h-4 w-4" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4" />
+                      )}
+                    </Button>
+                  )}
+                </div>
+
+                {widget.hasSettings && isSelected && isExpanded && renderWidgetSettings(widget)}
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </>
   );
 }
