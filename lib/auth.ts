@@ -55,7 +55,7 @@ export const authOptions: NextAuthOptions = {
   ],
   session: {
     strategy: 'jwt',
-    maxAge: 24 * 60 * 60, // 24 hours in seconds
+    // No maxAge - session expires when browser closes
   },
   cookies: {
     sessionToken: {
@@ -65,7 +65,7 @@ export const authOptions: NextAuthOptions = {
         sameSite: 'lax',
         path: '/',
         secure: process.env.NODE_ENV === 'production',
-        // No maxAge = session cookie (deleted when browser closes)
+        // No maxAge - cookie deleted when browser closes (session cookie)
       },
     },
   },
