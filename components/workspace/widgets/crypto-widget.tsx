@@ -13,18 +13,17 @@ interface CryptoData {
 }
 
 interface CryptoWidgetProps {
-  onSettings?: () => void;
   settings?: {
-    coins?: string;
+    coins?: string[];
     currency?: string;
   };
 }
 
-export function CryptoWidget({ onSettings, settings }: CryptoWidgetProps) {
+export function CryptoWidget({ settings }: CryptoWidgetProps) {
   const [cryptos, setCryptos] = useState<CryptoData[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const coins = settings?.coins || 'BTC,ETH,BNB';
+  const coins = settings?.coins?.join(',') || 'BTC,ETH,BNB';
   const currency = settings?.currency || 'usd';
 
   // Map abbreviations to full CoinGecko IDs

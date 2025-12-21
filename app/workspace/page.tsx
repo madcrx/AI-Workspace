@@ -45,6 +45,8 @@ export default function WorkspacePage() {
   const [availableTools, setAvailableTools] = useState<any[]>([]);
   const [sidebarSearch, setSidebarSearch] = useState('');
   const [userCredentials, setUserCredentials] = useState<Map<string, any>>(new Map());
+  const [widgetSidebarOpen, setWidgetSidebarOpen] = useState(false);
+  const [workspaceZoom, setWorkspaceZoom] = useState(100);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -331,7 +333,6 @@ export default function WorkspacePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <SimplifiedWidgetSidebar />
       <header className="border-b bg-background sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
@@ -349,12 +350,43 @@ export default function WorkspacePage() {
               <Button
                 variant="outline"
                 size="sm"
+                onClick={() => setWidgetSidebarOpen(!widgetSidebarOpen)}
+                className="gap-2"
+              >
+                <Settings className="h-4 w-4" />
+                {widgetSidebarOpen ? 'Hide' : 'Show'} Widgets
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => setSidebarOpen(!sidebarOpen)}
                 className="gap-2"
               >
                 <Plus className="h-4 w-4" />
                 {sidebarOpen ? 'Hide' : 'Show'} Tools
               </Button>
+
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Zoom:</span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setWorkspaceZoom(Math.max(50, workspaceZoom - 10))}
+                  className="h-8 w-8 p-0"
+                >
+                  −
+                </Button>
+                <span className="text-sm font-medium w-12 text-center">{workspaceZoom}%</span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setWorkspaceZoom(Math.min(150, workspaceZoom + 10))}
+                  className="h-8 w-8 p-0"
+                >
+                  +
+                </Button>
+              </div>
 
               <div className="flex items-center gap-2">
                 <Palette className="h-4 w-4 text-muted-foreground" />
@@ -406,7 +438,13 @@ export default function WorkspacePage() {
       </header>
 
       <div className="flex justify-center">
-        <main className={`w-full max-w-7xl px-4 py-8 transition-all duration-300 ${sidebarOpen ? 'pr-[calc(12.5%+1rem)]' : ''}`}>
+        <main
+          className={`w-full max-w-7xl px-4 py-8 transition-all duration-300 ${sidebarOpen ? 'pr-[calc(12.5%+1rem)]' : ''} ${widgetSidebarOpen ? 'pl-[calc(20rem+1rem)]' : ''}`}
+          style={{
+            transform: `scale(${workspaceZoom / 100})`,
+            transformOrigin: 'top center'
+          }}
+        >
           <div className="mb-6 flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold mb-2">
@@ -513,6 +551,12 @@ export default function WorkspacePage() {
           </div>
         </aside>
       </div>
+
+      {/* Widget Sidebar */}
+      <SimplifiedWidgetSidebar
+        isOpen={widgetSidebarOpen}
+        onClose={() => setWidgetSidebarOpen(false)}
+      />
 
       <ToolPicker
         open={showToolPicker}

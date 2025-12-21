@@ -6,13 +6,12 @@ import { Clock, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface ClockWidgetProps {
-  onSettings?: () => void;
   settings?: {
     timezone?: string;
   };
 }
 
-export function ClockWidget({ onSettings, settings }: ClockWidgetProps) {
+export function ClockWidget({ settings }: ClockWidgetProps) {
   const [time, setTime] = useState(new Date());
 
   const timezone = settings?.timezone || 'America/New_York';

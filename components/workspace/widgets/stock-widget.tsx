@@ -13,13 +13,12 @@ interface StockData {
 }
 
 interface StockWidgetProps {
-  onSettings?: () => void;
   settings?: {
     symbols?: string[];
   };
 }
 
-export function StockWidget({ onSettings, settings }: StockWidgetProps) {
+export function StockWidget({ settings }: StockWidgetProps) {
   const [stocks, setStocks] = useState<StockData[]>([]);
   const [loading, setLoading] = useState(true);
 
