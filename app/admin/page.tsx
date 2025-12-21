@@ -391,9 +391,7 @@ export default function AdminPage() {
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="tools">Tools</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            <TabsTrigger value="auto-scraper">Auto-Scraper</TabsTrigger>
-            <TabsTrigger value="scraper">Scraper</TabsTrigger>
-            <TabsTrigger value="images">Images</TabsTrigger>
+            <TabsTrigger value="scraper">Tool Scraper</TabsTrigger>
           </TabsList>
 
           <TabsContent value="tools">
@@ -499,104 +497,107 @@ export default function AdminPage() {
           </TabsContent>
 
           <TabsContent value="users">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-2xl font-bold">User Management</h2>
-                  <p className="text-sm text-muted-foreground">View and manage platform users</p>
-                </div>
-              </div>
-              {users.length === 0 ? (
-                <Card>
-                  <CardContent className="py-8">
-                    <p className="text-muted-foreground text-center">No users found</p>
-                  </CardContent>
-                </Card>
-              ) : (
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {users.map((user) => (
-                    <Card key={user.id} className="flex flex-col">
-                      <CardHeader className="pb-3">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <CardTitle className="text-base">{user.name || 'No name'}</CardTitle>
-                            <CardDescription className="text-xs mt-1">{user.email}</CardDescription>
-                          </div>
-                          <div className="flex flex-col gap-1">
-                            <Badge variant={user.role === 'ADMIN' ? 'default' : 'secondary'} className="text-xs">
-                              {user.role}
-                            </Badge>
-                            <Badge variant={user.isActive ? 'default' : 'destructive'} className="text-xs">
-                              {user.isActive ? 'Active' : 'Inactive'}
-                            </Badge>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="flex-1 space-y-3">
-                        <div className="grid grid-cols-3 gap-2 text-xs">
-                          <div className="text-center p-2 bg-muted/50 rounded">
-                            <p className="font-semibold">{user._count.workspaces}</p>
-                            <p className="text-muted-foreground">Workspaces</p>
-                          </div>
-                          <div className="text-center p-2 bg-muted/50 rounded">
-                            <p className="font-semibold">{user._count.reviews}</p>
-                            <p className="text-muted-foreground">Reviews</p>
-                          </div>
-                          <div className="text-center p-2 bg-muted/50 rounded">
-                            <p className="font-semibold text-xs">{new Date(user.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
-                            <p className="text-muted-foreground">Joined</p>
-                          </div>
-                        </div>
-
-                        {user.id !== session?.user?.id ? (
-                          <div className="flex flex-col gap-2 pt-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleRoleChange(
-                                user.id,
-                                user.role === 'ADMIN' ? 'USER' : 'ADMIN'
-                              )}
-                              className="w-full"
-                            >
-                              {user.role === 'ADMIN' ? 'Make User' : 'Make Admin'}
-                            </Button>
-                            <div className="grid grid-cols-2 gap-2">
-                              <Button
-                                size="sm"
-                                variant={user.isActive ? 'secondary' : 'default'}
-                                onClick={() => handleToggleUserActive(user.id, user.isActive)}
-                              >
-                                {user.isActive ? 'Deactivate' : 'Activate'}
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleResetPassword(user.id, user.email)}
-                              >
-                                Reset Pwd
-                              </Button>
-                            </div>
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              onClick={() => handleDeleteUser(user.id)}
-                              className="w-full"
-                            >
-                              Delete User
-                            </Button>
-                          </div>
-                        ) : (
-                          <div className="text-center py-4 text-xs text-muted-foreground">
-                            You cannot modify your own account
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle>User Management</CardTitle>
+                <CardDescription>
+                  View and manage platform users
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {users.length === 0 ? (
+                  <p className="text-muted-foreground text-center py-8">
+                    No users found
+                  </p>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="border rounded-lg overflow-hidden">
+                      <table className="w-full">
+                        <thead className="bg-muted/50">
+                          <tr>
+                            <th className="text-left p-3 font-medium">User</th>
+                            <th className="text-left p-3 font-medium">Role</th>
+                            <th className="text-left p-3 font-medium">Status</th>
+                            <th className="text-left p-3 font-medium">Workspaces</th>
+                            <th className="text-left p-3 font-medium">Reviews</th>
+                            <th className="text-left p-3 font-medium">Joined</th>
+                            <th className="text-right p-3 font-medium">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {users.map((user) => (
+                            <tr key={user.id} className="border-t">
+                              <td className="p-3">
+                                <div>
+                                  <p className="font-medium">{user.name || 'No name'}</p>
+                                  <p className="text-sm text-muted-foreground">{user.email}</p>
+                                </div>
+                              </td>
+                              <td className="p-3">
+                                <Badge variant={user.role === 'ADMIN' ? 'default' : 'secondary'}>
+                                  {user.role}
+                                </Badge>
+                              </td>
+                              <td className="p-3">
+                                <Badge variant={user.isActive ? 'default' : 'destructive'}>
+                                  {user.isActive ? 'Active' : 'Inactive'}
+                                </Badge>
+                              </td>
+                              <td className="p-3">{user._count.workspaces}</td>
+                              <td className="p-3">{user._count.reviews}</td>
+                              <td className="p-3">
+                                <span className="text-sm text-muted-foreground">
+                                  {new Date(user.createdAt).toLocaleDateString()}
+                                </span>
+                              </td>
+                              <td className="p-3">
+                                <div className="flex justify-end gap-2 flex-wrap">
+                                  {user.id !== session?.user?.id && (
+                                    <>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => handleRoleChange(
+                                          user.id,
+                                          user.role === 'ADMIN' ? 'USER' : 'ADMIN'
+                                        )}
+                                      >
+                                        {user.role === 'ADMIN' ? 'Make User' : 'Make Admin'}
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant={user.isActive ? 'secondary' : 'default'}
+                                        onClick={() => handleToggleUserActive(user.id, user.isActive)}
+                                      >
+                                        {user.isActive ? 'Deactivate' : 'Activate'}
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => handleResetPassword(user.id, user.email)}
+                                      >
+                                        Reset Password
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant="destructive"
+                                        onClick={() => handleDeleteUser(user.id)}
+                                      >
+                                        Delete
+                                      </Button>
+                                    </>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="analytics">
@@ -723,119 +724,105 @@ export default function AdminPage() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="auto-scraper">
+          <TabsContent value="scraper">
             <Card>
               <CardHeader>
-                <CardTitle>🤖 Auto-Scraper - Automatic Tool Discovery</CardTitle>
+                <CardTitle>🤖 AI Tool Scraper</CardTitle>
                 <CardDescription>
-                  Automatically discover and add new AI tools from multiple sources
+                  Discover, scrape, and maintain AI tools database automatically
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                  <h4 className="font-semibold mb-2 text-blue-900 dark:text-blue-100">✨ Fully Automated Tool Discovery</h4>
-                  <p className="text-sm text-blue-800 dark:text-blue-200 mb-3">
-                    The Auto-Scraper runs automatically every night at 2 AM (configured in Vercel Cron).
-                    It scans multiple sources and automatically adds new AI tools to your database - no admin action required!
+              <CardContent className="space-y-6">
+                {/* Auto Discovery Section */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-semibold">Automatic Discovery</h4>
+                    <Badge>Runs daily at 2 AM</Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Automatically discovers new AI tools from Product Hunt, GitHub Trending, and popular AI directories.
+                    New tools are auto-activated and added to the platform.
                   </p>
-                  <ul className="text-sm text-blue-800 dark:text-blue-200 list-disc list-inside space-y-1">
-                    <li><strong>Product Hunt AI</strong> - Latest AI tools from Product Hunt</li>
-                    <li><strong>GitHub Trending</strong> - Top AI repositories and tools</li>
-                    <li><strong>AI Directories</strong> - Popular AI tool directories</li>
-                  </ul>
+                  <Button
+                    onClick={() => runAutoScraper()}
+                    disabled={autoScraping}
+                    className="w-full"
+                    size="lg"
+                  >
+                    {autoScraping ? '🔄 Discovering Tools...' : '🚀 Discover New Tools'}
+                  </Button>
                 </div>
 
-                <div className="space-y-2">
-                  <h4 className="font-semibold">How it Works:</h4>
-                  <ol className="text-sm text-muted-foreground list-decimal list-inside space-y-1">
-                    <li>Scrapes multiple AI tool sources automatically</li>
-                    <li>Extracts tool name, description, category, pricing</li>
-                    <li><strong>Auto-activates</strong> new tools (no approval needed)</li>
-                    <li>Updates existing tools with fresh data</li>
-                    <li>Logs all actions for review</li>
-                  </ol>
-                </div>
-
+                {/* Custom URL Section */}
                 <div className="border-t pt-4 space-y-4">
-                  <div>
-                    <p className="text-sm font-medium mb-2">Manual Trigger:</p>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      Run the auto-scraper manually to discover tools right now
-                    </p>
-                    <Button
-                      onClick={() => runAutoScraper()}
+                  <h4 className="font-semibold">Custom URL Scraper</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Scrape tools from any website. Works with AI tool directories, listing pages, and individual tool pages.
+                  </p>
+                  <div className="flex gap-2">
+                    <Input
+                      type="url"
+                      placeholder="https://example.com/ai-tools"
+                      value={customUrl}
+                      onChange={(e) => setCustomUrl(e.target.value)}
                       disabled={autoScraping}
-                      className="w-full"
+                    />
+                    <Button
+                      onClick={() => runAutoScraper(customUrl)}
+                      disabled={autoScraping || !customUrl}
                       size="lg"
                     >
-                      {autoScraping ? '🔄 Discovering Tools...' : '🚀 Run Auto-Scraper Now'}
+                      {autoScraping ? '🔄 Scraping...' : '🔍 Scrape'}
                     </Button>
-                  </div>
-
-                  <div className="border-t pt-4">
-                    <Label className="text-sm font-medium mb-2">Custom URL Scraper:</Label>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      Scrape a specific website URL to extract AI tool information
-                    </p>
-                    <div className="flex gap-2">
-                      <Input
-                        type="url"
-                        placeholder="https://example.com/ai-tools"
-                        value={customUrl}
-                        onChange={(e) => setCustomUrl(e.target.value)}
-                        disabled={autoScraping}
-                      />
-                      <Button
-                        onClick={() => runAutoScraper(customUrl)}
-                        disabled={autoScraping || !customUrl}
-                        size="lg"
-                      >
-                        {autoScraping ? '🔄 Scraping...' : '🔍 Scrape URL'}
-                      </Button>
-                    </div>
                   </div>
                 </div>
 
+                {/* Results Display */}
                 {autoScraperResult && (
                   <div className={`p-4 rounded-lg border ${
                     autoScraperResult.error
-                      ? 'bg-red-50 border-red-200'
-                      : 'bg-green-50 border-green-200'
+                      ? 'bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800'
+                      : 'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800'
                   }`}>
-                    <h4 className="font-semibold mb-2">Auto-Scraper Results:</h4>
+                    <h4 className="font-semibold mb-3">Scraper Results</h4>
                     {autoScraperResult.error ? (
-                      <p className="text-sm text-red-600">{autoScraperResult.error}</p>
+                      <p className="text-sm text-red-600 dark:text-red-400">{autoScraperResult.error}</p>
                     ) : (
-                      <div className="space-y-2">
-                        <div className="grid grid-cols-2 gap-2 text-sm">
-                          <div className="p-2 bg-white rounded">
-                            <p className="text-muted-foreground">Sources Scraped</p>
-                            <p className="text-xl font-bold">{autoScraperResult.totalSources}</p>
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-4 gap-3">
+                          <div className="p-3 bg-white dark:bg-gray-800 rounded">
+                            <p className="text-xs text-muted-foreground">Found</p>
+                            <p className="text-2xl font-bold text-blue-600">{autoScraperResult.totalFound || 0}</p>
                           </div>
-                          <div className="p-2 bg-white rounded">
-                            <p className="text-muted-foreground">Tools Found</p>
-                            <p className="text-xl font-bold text-blue-600">{autoScraperResult.totalFound}</p>
+                          <div className="p-3 bg-white dark:bg-gray-800 rounded">
+                            <p className="text-xs text-muted-foreground">Added</p>
+                            <p className="text-2xl font-bold text-green-600">{autoScraperResult.totalAdded || 0}</p>
                           </div>
-                          <div className="p-2 bg-white rounded">
-                            <p className="text-muted-foreground">✨ New Tools Added</p>
-                            <p className="text-xl font-bold text-green-600">{autoScraperResult.totalAdded}</p>
+                          <div className="p-3 bg-white dark:bg-gray-800 rounded">
+                            <p className="text-xs text-muted-foreground">Updated</p>
+                            <p className="text-2xl font-bold text-yellow-600">{autoScraperResult.totalUpdated || 0}</p>
                           </div>
-                          <div className="p-2 bg-white rounded">
-                            <p className="text-muted-foreground">Updated</p>
-                            <p className="text-xl font-bold text-yellow-600">{autoScraperResult.totalUpdated}</p>
+                          <div className="p-3 bg-white dark:bg-gray-800 rounded">
+                            <p className="text-xs text-muted-foreground">Sources</p>
+                            <p className="text-2xl font-bold">{autoScraperResult.totalSources || 0}</p>
                           </div>
                         </div>
 
                         {autoScraperResult.results && autoScraperResult.results.length > 0 && (
-                          <div className="mt-3 space-y-2">
-                            <p className="font-medium text-sm">Details by Source:</p>
+                          <div className="space-y-2 max-h-60 overflow-y-auto">
                             {autoScraperResult.results.map((result: any, idx: number) => (
-                              <div key={idx} className="text-xs p-2 bg-white rounded">
-                                <p className="font-semibold">{result.source}</p>
-                                <p>Found: {result.toolsFound} | Added: {result.toolsAdded} | Updated: {result.toolsUpdated}</p>
-                                <p className="text-muted-foreground">Status: {result.status} ({result.executionTime}ms)</p>
+                              <div key={idx} className="text-xs p-3 bg-white dark:bg-gray-800 rounded">
+                                <div className="flex items-center justify-between mb-1">
+                                  <p className="font-semibold">{result.source}</p>
+                                  <Badge variant={result.status === 'SUCCESS' ? 'default' : 'destructive'} className="text-xs">
+                                    {result.status}
+                                  </Badge>
+                                </div>
+                                <p className="text-muted-foreground">
+                                  Found: {result.toolsFound} | Added: {result.toolsAdded} | Updated: {result.toolsUpdated} | {result.executionTime}ms
+                                </p>
                                 {result.errors && result.errors.length > 0 && (
-                                  <p className="text-red-600 mt-1">Errors: {result.errors.length}</p>
+                                  <p className="text-red-600 dark:text-red-400 mt-1">{result.errors.length} errors</p>
                                 )}
                               </div>
                             ))}
@@ -846,134 +833,31 @@ export default function AdminPage() {
                   </div>
                 )}
 
+                {/* Info Section */}
                 <div className="border-t pt-4">
-                  <p className="text-xs text-muted-foreground">
-                    💡 <strong>Tip:</strong> The auto-scraper runs every night at 2 AM automatically.
-                    All new tools are auto-activated and ready for users immediately!
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="scraper">
-            <Card>
-              <CardHeader>
-                <CardTitle>Tool Scraper</CardTitle>
-                <CardDescription>
-                  Automatically check tool availability and update information
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">
-                    The scraper runs automatically every 24 hours to check if tools are still available and updates their status.
-                  </p>
-                  <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1">
-                    <li>Checks if tool websites are accessible</li>
-                    <li>Marks unavailable tools as inactive</li>
-                    <li>Updates tool metadata</li>
-                    <li>Auto-updates user workspaces with changes</li>
-                  </ul>
-                </div>
-
-                <Button
-                  onClick={runScraper}
-                  disabled={scraping}
-                  className="w-full"
-                >
-                  {scraping ? 'Running Scraper...' : 'Run Scraper Manually'}
-                </Button>
-
-                {scrapingResult && (
-                  <div className={`p-4 rounded-lg border ${scrapingResult.success ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
-                    <h4 className="font-semibold mb-2">Scraping Results:</h4>
-                    <div className="space-y-1 text-sm">
-                      <p>Status: {scrapingResult.success ? '✅ Success' : '❌ Failed'}</p>
-                      <p>Tools Updated: {scrapingResult.updated || 0}</p>
-                      <p>Tools Removed: {scrapingResult.removed || 0}</p>
-                      {scrapingResult.errors && scrapingResult.errors.length > 0 && (
-                        <div className="mt-2">
-                          <p className="font-medium">Errors:</p>
-                          <ul className="list-disc list-inside">
-                            {scrapingResult.errors.slice(0, 5).map((error: string, idx: number) => (
-                              <li key={idx} className="text-xs text-red-600">{error}</li>
-                            ))}
-                          </ul>
-                          {scrapingResult.errors.length > 5 && (
-                            <p className="text-xs text-muted-foreground mt-1">
-                              ...and {scrapingResult.errors.length - 5} more errors
-                            </p>
-                          )}
-                        </div>
-                      )}
+                  <div className="grid md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <h5 className="font-semibold mb-2">✨ Features:</h5>
+                      <ul className="text-muted-foreground space-y-1">
+                        <li>• Scrapes Product Hunt, GitHub, AI directories</li>
+                        <li>• Custom URL scraping with smart extraction</li>
+                        <li>• Automatic tool categorization</li>
+                        <li>• Pricing detection</li>
+                        <li>• Logo extraction</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <h5 className="font-semibold mb-2">⚡ Automation:</h5>
+                      <ul className="text-muted-foreground space-y-1">
+                        <li>• Runs automatically every night at 2 AM</li>
+                        <li>• New tools auto-activated</li>
+                        <li>• Updates existing tool data</li>
+                        <li>• Logs all actions for review</li>
+                        <li>• No manual approval needed</li>
+                      </ul>
                     </div>
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="images" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Image Fetcher</CardTitle>
-                <CardDescription>
-                  Automatically fetch and update tool logos from provider websites
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">
-                    The image fetcher retrieves logos and favicons from tool websites using multiple methods:
-                  </p>
-                  <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1">
-                    <li>Google Favicon Service (primary)</li>
-                    <li>DuckDuckGo Icon Service (fallback)</li>
-                    <li>Direct website favicon.ico</li>
-                    <li>Common logo paths (/logo.png, /logo.svg, etc.)</li>
-                  </ul>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Note: This process may take several minutes for all tools.
-                  </p>
                 </div>
-
-                <Button
-                  onClick={runImageFetcher}
-                  disabled={fetchingImages}
-                  className="w-full"
-                >
-                  {fetchingImages ? 'Fetching Images...' : 'Fetch Tool Images'}
-                </Button>
-
-                {imageFetchResult && (
-                  <div className={`p-4 rounded-lg border ${imageFetchResult.failed === 0 ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200'}`}>
-                    <h4 className="font-semibold mb-2">Image Fetch Results:</h4>
-                    <div className="space-y-1 text-sm">
-                      <p>Total Tools: {imageFetchResult.total || 0}</p>
-                      <p>Successfully Fetched: {imageFetchResult.successful || 0}</p>
-                      <p>Failed: {imageFetchResult.failed || 0}</p>
-                      {imageFetchResult.details && imageFetchResult.details.length > 0 && (
-                        <div className="mt-3 max-h-[200px] overflow-y-auto">
-                          <p className="font-medium mb-1">Details:</p>
-                          <div className="space-y-1">
-                            {imageFetchResult.details.slice(0, 10).map((detail: any, idx: number) => (
-                              <div key={idx} className="text-xs">
-                                {detail.success ? '✅' : '❌'} {detail.toolName}
-                                {detail.error && <span className="text-red-600"> - {detail.error}</span>}
-                              </div>
-                            ))}
-                          </div>
-                          {imageFetchResult.details.length > 10 && (
-                            <p className="text-xs text-muted-foreground mt-1">
-                              ...and {imageFetchResult.details.length - 10} more
-                            </p>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
               </CardContent>
             </Card>
           </TabsContent>
