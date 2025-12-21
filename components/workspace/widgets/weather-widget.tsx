@@ -15,7 +15,6 @@ interface WeatherData {
 }
 
 interface WeatherWidgetProps {
-  onSettings?: () => void;
   settings?: {
     location?: string;
     city?: string;
@@ -25,7 +24,7 @@ interface WeatherWidgetProps {
   };
 }
 
-export function WeatherWidget({ onSettings, settings }: WeatherWidgetProps) {
+export function WeatherWidget({ settings }: WeatherWidgetProps) {
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(true);
 

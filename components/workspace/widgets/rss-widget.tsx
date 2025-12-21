@@ -12,13 +12,12 @@ interface RSSItem {
 }
 
 interface RSSWidgetProps {
-  onSettings?: () => void;
   settings?: {
     feedUrl?: string;
   };
 }
 
-export function RSSWidget({ onSettings, settings }: RSSWidgetProps) {
+export function RSSWidget({ settings }: RSSWidgetProps) {
   const [items, setItems] = useState<RSSItem[]>([]);
   const [loading, setLoading] = useState(true);
 
