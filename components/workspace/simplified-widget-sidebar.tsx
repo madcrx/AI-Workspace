@@ -15,13 +15,15 @@ import { StockWidget } from './widgets/stock-widget';
 import { CalendarWidget } from './widgets/calendar-widget';
 import { TodoWidget } from './widgets/todo-widget';
 import { RSSWidget } from './widgets/rss-widget';
-import { ChevronDown, ChevronRight, Settings as SettingsIcon } from 'lucide-react';
+import { ChevronDown, ChevronRight, Settings as SettingsIcon, Palette } from 'lucide-react';
 
 interface WidgetSettings {
   timezone?: string;
   location?: string;
   coins?: string[];
+  coinsInput?: string;
   symbols?: string[];
+  symbolsInput?: string;
   unit?: 'celsius' | 'fahrenheit';
   feedUrl?: string;
 }
@@ -94,11 +96,22 @@ const AVAILABLE_WIDGETS = [
 ];
 
 interface SimplifiedWidgetSidebarProps {
-  isOpen: boolean;
-  onClose: () => void;
+  selectorOpen: boolean;
+  onSelectorToggle: () => void;
+  workspaceZoom: number;
+  onZoomChange: (zoom: number) => void;
+  currentTheme: string;
+  onThemeChange: (theme: string) => void;
 }
 
-export function SimplifiedWidgetSidebar({ isOpen, onClose }: SimplifiedWidgetSidebarProps) {
+export function SimplifiedWidgetSidebar({
+  selectorOpen,
+  onSelectorToggle,
+  workspaceZoom,
+  onZoomChange,
+  currentTheme,
+  onThemeChange
+}: SimplifiedWidgetSidebarProps) {
   const [widgetConfigs, setWidgetConfigs] = useState<WidgetConfig[]>([]);
   const [expandedWidget, setExpandedWidget] = useState<string | null>(null);
   const [widgetSettings, setWidgetSettings] = useState<Map<string, WidgetSettings>>(new Map());
@@ -239,11 +252,16 @@ export function SimplifiedWidgetSidebar({ isOpen, onClose }: SimplifiedWidgetSid
           <div>
             <label className="text-xs font-medium mb-1 block">Coins (comma-separated)</label>
             <Input
-              value={settings.coins?.join(', ') || ''}
-              onChange={(e) => updateWidgetSettings(widget.id, {
-                ...settings,
-                coins: e.target.value.split(',').map(s => s.trim()).filter(Boolean)
-              })}
+              value={settings.coinsInput || settings.coins?.join(', ') || ''}
+              onChange={(e) => {
+                const inputValue = e.target.value;
+                const coinsArray = inputValue.split(',').map(s => s.trim()).filter(Boolean);
+                updateWidgetSettings(widget.id, {
+                  ...settings,
+                  coinsInput: inputValue,
+                  coins: coinsArray
+                });
+              }}
               placeholder="BTC, ETH, SOL"
               className="h-7 text-xs"
             />
@@ -254,11 +272,16 @@ export function SimplifiedWidgetSidebar({ isOpen, onClose }: SimplifiedWidgetSid
           <div>
             <label className="text-xs font-medium mb-1 block">Stock Symbols (comma-separated)</label>
             <Input
-              value={settings.symbols?.join(', ') || ''}
-              onChange={(e) => updateWidgetSettings(widget.id, {
-                ...settings,
-                symbols: e.target.value.split(',').map(s => s.trim()).filter(Boolean)
-              })}
+              value={settings.symbolsInput || settings.symbols?.join(', ') || ''}
+              onChange={(e) => {
+                const inputValue = e.target.value;
+                const symbolsArray = inputValue.split(',').map(s => s.trim()).filter(Boolean);
+                updateWidgetSettings(widget.id, {
+                  ...settings,
+                  symbolsInput: inputValue,
+                  symbols: symbolsArray
+                });
+              }}
               placeholder="AAPL, GOOGL, MSFT"
               className="h-7 text-xs"
             />
@@ -282,12 +305,59 @@ export function SimplifiedWidgetSidebar({ isOpen, onClose }: SimplifiedWidgetSid
 
   return (
     <>
-      {/* Left Sidebar - Widget Display */}
-      <aside
-        className={`fixed left-0 top-16 h-[calc(100vh-4rem)] bg-muted/30 border-r transition-transform duration-300 ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
-        } w-80 z-20 overflow-y-auto p-4`}
-      >
+      {/* Left Sidebar - Widget Display (Always Visible) */}
+      <aside className="fixed left-0 top-16 h-[calc(100vh-4rem)] bg-muted/30 border-r w-80 z-20 overflow-y-auto p-4">
+        {/* Zoom and Theme Controls */}
+        <div className="mb-4 space-y-3 pb-4 border-b">
+          {/* Zoom Control */}
+          <div>
+            <label className="text-xs font-medium mb-2 block">Workspace Zoom</label>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onZoomChange(Math.max(50, workspaceZoom - 10))}
+                className="h-7 w-7 p-0"
+              >
+                −
+              </Button>
+              <span className="text-xs font-medium w-12 text-center">{workspaceZoom}%</span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onZoomChange(Math.min(150, workspaceZoom + 10))}
+                className="h-7 w-7 p-0"
+              >
+                +
+              </Button>
+            </div>
+          </div>
+
+          {/* Theme Selector */}
+          <div>
+            <label className="text-xs font-medium mb-2 block flex items-center gap-1">
+              <Palette className="h-3 w-3" />
+              Theme
+            </label>
+            <Select value={currentTheme} onValueChange={onThemeChange}>
+              <SelectTrigger className="h-7 text-xs">
+                <SelectValue placeholder="Theme" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="default">Default</SelectItem>
+                <SelectItem value="ocean">Ocean</SelectItem>
+                <SelectItem value="forest">Forest</SelectItem>
+                <SelectItem value="sunset">Sunset</SelectItem>
+                <SelectItem value="lavender">Lavender</SelectItem>
+                <SelectItem value="rose">Rose</SelectItem>
+                <SelectItem value="midnight">Midnight</SelectItem>
+                <SelectItem value="charcoal">Charcoal</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Widgets */}
         <div className="space-y-4">
           {widgetConfigs.map((config) => {
             const widgetDef = AVAILABLE_WIDGETS.find(w => w.id === config.type);
@@ -305,63 +375,65 @@ export function SimplifiedWidgetSidebar({ isOpen, onClose }: SimplifiedWidgetSid
           {widgetConfigs.length === 0 && (
             <div className="text-center text-sm text-muted-foreground py-8">
               <p>No widgets selected</p>
-              <p className="text-xs mt-2">Select widgets to display</p>
+              <p className="text-xs mt-2">Click "Add Widgets" to start</p>
             </div>
           )}
         </div>
       </aside>
 
-      {/* Widget Selector Overlay (only when sidebar is open) */}
-      {isOpen && (
-        <div className="fixed left-80 top-16 h-[calc(100vh-4rem)] w-96 bg-background border-r z-20 overflow-y-auto">
-          <div className="p-4 border-b">
-            <h3 className="font-semibold text-lg">Widget Selector</h3>
-            <p className="text-xs text-muted-foreground mt-1">Select and configure your widgets</p>
-          </div>
-
-          <div className="divide-y">
-            {AVAILABLE_WIDGETS.map((widget) => {
-              const isSelected = widgetConfigs.some(w => w.type === widget.id);
-              const isExpanded = expandedWidget === widget.id;
-
-              return (
-                <div key={widget.id}>
-                  <div className="flex items-center p-3 hover:bg-muted/50 transition-colors">
-                    <Checkbox
-                      checked={isSelected}
-                      onCheckedChange={() => toggleWidget(widget.id)}
-                      className="mr-3"
-                    />
-                    <label
-                      className="flex-1 cursor-pointer font-medium text-sm"
-                      onClick={() => toggleWidget(widget.id)}
-                    >
-                      {widget.name}
-                    </label>
-
-                    {widget.hasSettings && isSelected && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setExpandedWidget(isExpanded ? null : widget.id)}
-                        className="h-7 w-7 p-0"
-                      >
-                        {isExpanded ? (
-                          <ChevronDown className="h-4 w-4" />
-                        ) : (
-                          <ChevronRight className="h-4 w-4" />
-                        )}
-                      </Button>
-                    )}
-                  </div>
-
-                  {widget.hasSettings && isSelected && isExpanded && renderWidgetSettings(widget)}
-                </div>
-              );
-            })}
-          </div>
+      {/* Widget Selector Panel (Collapsible) */}
+      <div
+        className={`fixed left-80 top-16 h-[calc(100vh-4rem)] w-96 bg-background border-r z-20 overflow-y-auto transition-transform duration-300 ${
+          selectorOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        <div className="p-4 border-b">
+          <h3 className="font-semibold text-lg">Widget Selector</h3>
+          <p className="text-xs text-muted-foreground mt-1">Select and configure your widgets</p>
         </div>
-      )}
+
+        <div className="divide-y">
+          {AVAILABLE_WIDGETS.map((widget) => {
+            const isSelected = widgetConfigs.some(w => w.type === widget.id);
+            const isExpanded = expandedWidget === widget.id;
+
+            return (
+              <div key={widget.id}>
+                <div className="flex items-center p-3 hover:bg-muted/50 transition-colors">
+                  <Checkbox
+                    checked={isSelected}
+                    onCheckedChange={() => toggleWidget(widget.id)}
+                    className="mr-3"
+                  />
+                  <label
+                    className="flex-1 cursor-pointer font-medium text-sm"
+                    onClick={() => toggleWidget(widget.id)}
+                  >
+                    {widget.name}
+                  </label>
+
+                  {widget.hasSettings && isSelected && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setExpandedWidget(isExpanded ? null : widget.id)}
+                      className="h-7 w-7 p-0"
+                    >
+                      {isExpanded ? (
+                        <ChevronDown className="h-4 w-4" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4" />
+                      )}
+                    </Button>
+                  )}
+                </div>
+
+                {widget.hasSettings && isSelected && isExpanded && renderWidgetSettings(widget)}
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </>
   );
 }
