@@ -65,14 +65,8 @@ export function RSSWidget({ onSettings, settings }: RSSWidgetProps) {
   };
 
   return (
-    <Card className="w-full h-full">
-      <CardHeader className="pb-2">
-        <div className="flex items-center gap-2">
-          <Rss className="h-4 w-4" />
-          <CardTitle className="text-sm font-medium">{defaultFeed}</CardTitle>
-        </div>
-      </CardHeader>
-      <CardContent>
+    <Card className="w-full overflow-hidden">
+      <CardContent className="pt-4 pb-4">
         {loading ? (
           <div className="text-sm text-muted-foreground">Loading feed...</div>
         ) : (

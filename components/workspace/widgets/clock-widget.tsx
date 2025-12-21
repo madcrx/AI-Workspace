@@ -60,14 +60,8 @@ export function ClockWidget({ onSettings, settings }: ClockWidgetProps) {
   };
 
   return (
-    <Card className="w-full h-full">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-sm flex items-center gap-2">
-          <Clock className="h-4 w-4" />
-          Clock - {getTimezoneName()}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
+    <Card className="w-full overflow-hidden">
+      <CardContent className="pt-4 pb-4">
         <div className="text-center">
           <div className="text-2xl font-bold">
             {formatTime()}

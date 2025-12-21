@@ -98,14 +98,8 @@ export function CryptoWidget({ onSettings, settings }: CryptoWidgetProps) {
   const currencySymbol = currencySymbols[currency] || currency.toUpperCase();
 
   return (
-    <Card className="w-full h-full">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-sm flex items-center gap-2">
-          <span>₿</span>
-          Crypto Ticker
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
+    <Card className="w-full overflow-hidden">
+      <CardContent className="pt-4 pb-4">
         {loading ? (
           <p className="text-xs text-muted-foreground">Loading...</p>
         ) : (

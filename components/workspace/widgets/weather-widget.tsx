@@ -94,14 +94,8 @@ export function WeatherWidget({ onSettings, settings }: WeatherWidgetProps) {
   };
 
   return (
-    <Card className="w-full h-full">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-sm flex items-center gap-2">
-          <Cloud className="h-4 w-4" />
-          Weather
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
+    <Card className="w-full overflow-hidden">
+      <CardContent className="pt-4 pb-4">
         {loading ? (
           <p className="text-xs text-muted-foreground">Loading...</p>
         ) : weather ? (

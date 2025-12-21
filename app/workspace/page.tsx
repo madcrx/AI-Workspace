@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { WorkspaceGrid } from '@/components/workspace/workspace-grid';
 import { ToolPicker } from '@/components/workspace/tool-picker';
-import { EnhancedWidgetSidebar } from '@/components/workspace/enhanced-widget-sidebar';
+import { SimplifiedWidgetSidebar } from '@/components/workspace/simplified-widget-sidebar';
 import { Plus, Settings, LogOut, Sparkles, Palette, Search, ChevronRight, ChevronLeft, Key } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import Link from 'next/link';
@@ -80,6 +80,18 @@ export default function WorkspacePage() {
         applyWorkspaceTheme(currentWorkspace.theme);
       }
     }
+
+    // Reset theme when component unmounts (leaving workspace page)
+    return () => {
+      const root = document.documentElement;
+      root.style.removeProperty('--primary');
+      root.style.removeProperty('--secondary');
+      root.style.removeProperty('--accent');
+      root.style.removeProperty('--background');
+      root.style.removeProperty('--foreground');
+      root.style.removeProperty('--card');
+      root.style.removeProperty('--card-foreground');
+    };
   }, [currentWorkspace, searchQuery, selectedCategory, selectedPricing]);
 
   // Listen for theme changes from settings page
@@ -319,7 +331,7 @@ export default function WorkspacePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <EnhancedWidgetSidebar />
+      <SimplifiedWidgetSidebar />
       <header className="border-b bg-background sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">

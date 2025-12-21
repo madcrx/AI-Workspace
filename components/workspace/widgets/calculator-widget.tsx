@@ -36,12 +36,6 @@ export function CalculatorWidget() {
 
   return (
     <Card className="w-full">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-sm flex items-center gap-2">
-          <Calculator className="h-4 w-4" />
-          Calculator
-        </CardTitle>
-      </CardHeader>
       <CardContent className="space-y-2">
         <div className="bg-muted p-2 rounded text-right">
           <div className="text-xs text-muted-foreground h-4">{equation}</div>
