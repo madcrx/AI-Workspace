@@ -50,11 +50,8 @@ export function StockWidget({ onSettings, settings }: StockWidgetProps) {
   }, [defaultSymbols.join(',')]);
 
   return (
-    <Card className="w-full h-full">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium">Stock Ticker</CardTitle>
-      </CardHeader>
-      <CardContent>
+    <Card className="w-full overflow-hidden">
+      <CardContent className="pt-4 pb-4">
         {loading ? (
           <div className="text-sm text-muted-foreground">Loading...</div>
         ) : (

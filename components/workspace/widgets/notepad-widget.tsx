@@ -39,19 +39,13 @@ export function NotepadWidget() {
   };
 
   return (
-    <Card className="w-full h-full flex flex-col">
-      <CardHeader className="pb-3 flex-shrink-0">
-        <CardTitle className="text-sm flex items-center gap-2">
-          <StickyNote className="h-4 w-4" />
-          Notepad
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="flex-1 flex flex-col overflow-hidden">
+    <Card className="w-full overflow-hidden">
+      <CardContent className="pt-4 pb-4">
         <Textarea
           placeholder="Your notes..."
           value={notes}
           onChange={(e) => handleNotesChange(e.target.value)}
-          className="flex-1 text-xs resize-none h-full"
+          className="text-xs resize-none h-48 border-none focus-visible:ring-0"
         />
       </CardContent>
     </Card>

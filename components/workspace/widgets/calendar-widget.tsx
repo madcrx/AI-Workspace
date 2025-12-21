@@ -36,21 +36,8 @@ export function CalendarWidget() {
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   return (
-    <Card className="w-full h-full">
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={previousMonth}>
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <CardTitle className="text-sm font-medium">
-            {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
-          </CardTitle>
-          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={nextMonth}>
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent>
+    <Card className="w-full overflow-hidden">
+      <CardContent className="pt-4 pb-4">
         <div className="grid grid-cols-7 gap-1 text-center">
           {dayNames.map(day => (
             <div key={day} className="text-xs font-semibold text-muted-foreground">

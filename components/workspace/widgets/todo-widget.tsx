@@ -71,11 +71,8 @@ export function TodoWidget() {
   };
 
   return (
-    <Card className="w-full h-full">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium">To-Do List</CardTitle>
-      </CardHeader>
-      <CardContent>
+    <Card className="w-full overflow-hidden">
+      <CardContent className="pt-4 pb-4">
         <div className="space-y-2">
           <div className="flex gap-2">
             <Input
