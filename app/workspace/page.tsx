@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { WorkspaceGrid } from '@/components/workspace/workspace-grid';
 import { ToolPicker } from '@/components/workspace/tool-picker';
 import { SimplifiedWidgetSidebar } from '@/components/workspace/simplified-widget-sidebar';
-import { Plus, Settings, LogOut, Sparkles, Search, ChevronRight, ChevronLeft, Key } from 'lucide-react';
+import { Plus, LogOut, Sparkles, Search, ChevronRight, ChevronLeft, Key } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import Link from 'next/link';
 
@@ -347,16 +347,6 @@ export default function WorkspacePage() {
             </div>
 
             <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setWidgetSidebarOpen(!widgetSidebarOpen)}
-                className="gap-2"
-              >
-                <Settings className="h-4 w-4" />
-                {widgetSidebarOpen ? 'Hide' : 'Add'} Widgets
-              </Button>
-
               <Button
                 variant="outline"
                 size="sm"

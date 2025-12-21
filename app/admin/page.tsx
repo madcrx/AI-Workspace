@@ -9,7 +9,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Users, Wrench, Clock, Eye, MousePointer, Layers, BarChart3, TrendingUp } from 'lucide-react';
+import { Users, Wrench, Clock, Eye, MousePointer, Layers, BarChart3, TrendingUp, LogOut } from 'lucide-react';
+import { signOut } from 'next-auth/react';
+import Link from 'next/link';
 
 interface Stats {
   totalUsers: number;
@@ -333,8 +335,24 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b">
-        <div className="container mx-auto px-4 py-4">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+          <div className="flex items-center gap-4">
+            <Link href="/workspace">
+              <Button variant="ghost" size="sm">
+                Go to Workspace
+              </Button>
+            </Link>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => signOut({ callbackUrl: '/' })}
+              className="gap-2"
+            >
+              <LogOut className="h-4 w-4" />
+              Logout
+            </Button>
+          </div>
         </div>
       </header>
 

@@ -307,6 +307,19 @@ export function SimplifiedWidgetSidebar({
     <>
       {/* Left Sidebar - Widget Display (Always Visible) */}
       <aside className="fixed left-0 top-16 h-[calc(100vh-4rem)] bg-muted/30 border-r w-80 z-20 overflow-y-auto p-4">
+        {/* Add Widgets Button */}
+        <div className="mb-4">
+          <Button
+            variant="default"
+            size="sm"
+            onClick={onSelectorToggle}
+            className="w-full gap-2"
+          >
+            <SettingsIcon className="h-4 w-4" />
+            {selectorOpen ? 'Close Widget Selector' : 'Add Widgets'}
+          </Button>
+        </div>
+
         {/* Zoom and Theme Controls */}
         <div className="mb-4 space-y-3 pb-4 border-b">
           {/* Zoom Control */}
