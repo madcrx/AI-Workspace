@@ -458,7 +458,7 @@ export class AutoScraper {
   /**
    * Extract tool information from a generic element (list item, div, etc.)
    */
-  private extractToolFromElement($elem: cheerio.Cheerio, baseUrl: string): ScrapedTool | null {
+  private extractToolFromElement($elem: cheerio.Cheerio<any>, baseUrl: string): ScrapedTool | null {
     // Extract name
     const name =
       $elem.find('h1, h2, h3, h4, [class*="title"], [class*="name"], strong, b').first().text().trim() ||
@@ -500,7 +500,7 @@ export class AutoScraper {
   /**
    * Extract tool information from a table row
    */
-  private extractToolFromTableRow($row: cheerio.Cheerio, baseUrl: string): ScrapedTool | null {
+  private extractToolFromTableRow($row: cheerio.Cheerio<any>, baseUrl: string): ScrapedTool | null {
     const cells = $row.find('td');
     if (cells.length < 2) return null;
 
