@@ -135,6 +135,7 @@ model Tool {
   workspaceTools WorkspaceTool[]
   reviews       Review[]
   credentials   ToolCredential[]
+  videoClips    VideoClip[]
 }
 
 model Category {
@@ -269,4 +270,46 @@ model CustomScraperUrl {
   description String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model VideoClip {
+  id              String   @id @default(cuid())
+  title           String
+  youtubeVideoId  String   // YouTube video ID or clip ID
+  toolId          String   // Featured AI tool
+  tool            Tool     @relation(fields: [toolId], references: [id], onDelete: Cascade)
+  description     String?
+  duration        Int?     // Duration in seconds
+  thumbnailUrl    String?
+  isSponsored     Boolean  @default(false)
+  sponsorAmount   Float?   // Amount paid by tool for placement
+  costPerClick    Float    @default(0) // Cost per click for monetization
+  impressions     Int      @default(0) // Times video was shown
+  clicks          Int      @default(0) // Times video was clicked
+  conversions     Int      @default(0) // Times user visited tool after watching
+  totalEarnings   Float    @default(0) // Total earnings from this video
+  isActive        Boolean  @default(true)
+  isFeatured      Boolean  @default(false)
+  placement       String   @default("SIDEBAR") // SIDEBAR, HERO, INLINE, FEATURED
+  startDate       DateTime?
+  endDate         DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  videoClicks     VideoClick[]
+}
+
+model VideoClick {
+  id              String   @id @default(cuid())
+  videoClipId     String
+  videoClip       VideoClip @relation(fields: [videoClipId], references: [id], onDelete: Cascade)
+  userId          String?  // Null if not logged in
+  ipAddress       String?
+  userAgent       String?
+  referrer        String?
+  sessionId       String?
+  watched         Boolean  @default(false) // Did they watch the video
+  converted       Boolean  @default(false) // Did they click through to the tool
+  watchDuration   Int?     // How long they watched in seconds
+  earnedAmount    Float    @default(0) // Amount earned from this click
+  createdAt       DateTime @default(now())
 }

@@ -114,21 +114,31 @@ export default function TutorialDetailPage({ params }: { params: { slug: string 
         </div>
 
         {/* YouTube Video */}
-        {tutorial.youtubeVideoId && (
+        {tutorial.youtubeVideoId ? (
           <Card className="mb-8">
             <CardContent className="p-0">
               <div className="aspect-video">
                 <iframe
                   width="100%"
                   height="100%"
-                  src={`https://www.youtube.com/embed/${tutorial.youtubeVideoId}`}
+                  src={`https://www.youtube.com/embed/${tutorial.youtubeVideoId}?rel=0&modestbranding=1`}
                   title={tutorial.title}
                   frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   allowFullScreen
                   className="rounded-lg"
+                  referrerPolicy="strict-origin-when-cross-origin"
                 ></iframe>
               </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card className="mb-8 border-yellow-200 bg-yellow-50 dark:bg-yellow-950/20">
+            <CardContent className="p-6 text-center">
+              <Sparkles className="h-12 w-12 mx-auto mb-3 text-yellow-600" />
+              <p className="text-muted-foreground">
+                Video content for this tutorial is being prepared. Check back soon!
+              </p>
             </CardContent>
           </Card>
         )}

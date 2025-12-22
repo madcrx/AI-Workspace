@@ -1217,6 +1217,109 @@ export default function AdminPage() {
                     </div>
                   </div>
                 </div>
+
+                {/* Video Clips Management */}
+                <div className="space-y-4 border-t pt-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-semibold flex items-center gap-2">
+                        <span>📹</span> YouTube Video Clips (Sponsored Content)
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        Manage sponsored video clips for featured AI tools with click-based monetization
+                      </p>
+                    </div>
+                    <Button onClick={() => {
+                      alert('Video clip creation form coming soon! Use database or API to add clips.');
+                    }}>
+                      + Add Video Clip
+                    </Button>
+                  </div>
+
+                  <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                    <h4 className="font-semibold mb-3 flex items-center gap-2">
+                      <span>💡</span> How Video Monetization Works
+                    </h4>
+                    <div className="text-sm text-muted-foreground space-y-2">
+                      <p><strong>Revenue Model:</strong></p>
+                      <ul className="list-disc list-inside space-y-1 ml-2">
+                        <li><strong>Impressions:</strong> Video is shown to users (tracked automatically)</li>
+                        <li><strong>Clicks:</strong> User clicks play or interacts with video</li>
+                        <li><strong>Conversions:</strong> User clicks through to visit the AI tool (earns money!)</li>
+                        <li><strong>Cost Per Click:</strong> AI tool pays you per conversion (e.g., $0.50 - $5.00)</li>
+                      </ul>
+                      <p className="mt-3"><strong>Placement Options:</strong></p>
+                      <ul className="list-disc list-inside space-y-1 ml-2">
+                        <li><strong>HERO:</strong> Featured prominently on homepage</li>
+                        <li><strong>SIDEBAR:</strong> In tutorial/tool page sidebars</li>
+                        <li><strong>INLINE:</strong> Within content feeds</li>
+                        <li><strong>FEATURED:</strong> Special featured section</li>
+                      </ul>
+                    </div>
+                  </div>
+
+                  <div className="grid md:grid-cols-3 gap-4">
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-sm font-medium">Total Video Clips</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-2xl font-bold">0</p>
+                        <p className="text-xs text-muted-foreground">Active sponsored videos</p>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-sm font-medium">Click-Through Rate</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-2xl font-bold">0%</p>
+                        <p className="text-xs text-muted-foreground">Average CTR</p>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/20 dark:to-green-900/20 border-green-200">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-sm font-medium">Total Earnings</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-2xl font-bold text-green-600">$0.00</p>
+                        <p className="text-xs text-muted-foreground">From video conversions</p>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  <div className="p-4 border rounded-lg bg-card">
+                    <h5 className="font-medium mb-3">Example Video Clip Setup:</h5>
+                    <div className="bg-muted/50 p-3 rounded text-xs font-mono">
+                      <p className="text-muted-foreground mb-2">// Create via API or database:</p>
+                      <pre className="text-xs overflow-x-auto">{`{
+  "title": "ChatGPT Plus Tutorial",
+  "youtubeVideoId": "dQw4w9WgXcQ",
+  "toolId": "tool-id-here",
+  "description": "Learn ChatGPT Plus features",
+  "isSponsored": true,
+  "costPerClick": 2.50,
+  "placement": "HERO",
+  "isFeatured": true
+}`}</pre>
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                    <h4 className="font-semibold mb-2 flex items-center gap-2">
+                      <span>⚠️</span> Important Notes
+                    </h4>
+                    <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+                      <li>Video clips require valid YouTube video IDs</li>
+                      <li>Set costPerClick based on agreement with AI tool provider</li>
+                      <li>Track earnings in real-time via admin dashboard</li>
+                      <li>Video clips can be scheduled with start/end dates</li>
+                      <li>Use isFeatured to prioritize high-value sponsors</li>
+                    </ul>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
