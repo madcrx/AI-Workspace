@@ -98,8 +98,6 @@ const AVAILABLE_WIDGETS = [
 interface SimplifiedWidgetSidebarProps {
   selectorOpen: boolean;
   onSelectorToggle: () => void;
-  workspaceZoom: number;
-  onZoomChange: (zoom: number) => void;
   currentTheme: string;
   onThemeChange: (theme: string) => void;
 }
@@ -107,8 +105,6 @@ interface SimplifiedWidgetSidebarProps {
 export function SimplifiedWidgetSidebar({
   selectorOpen,
   onSelectorToggle,
-  workspaceZoom,
-  onZoomChange,
   currentTheme,
   onThemeChange
 }: SimplifiedWidgetSidebarProps) {
@@ -320,33 +316,8 @@ export function SimplifiedWidgetSidebar({
           </Button>
         </div>
 
-        {/* Zoom and Theme Controls */}
-        <div className="mb-4 space-y-3 pb-4 border-b">
-          {/* Zoom Control */}
-          <div>
-            <label className="text-xs font-medium mb-2 block">Workspace Zoom</label>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onZoomChange(Math.max(50, workspaceZoom - 10))}
-                className="h-7 w-7 p-0"
-              >
-                −
-              </Button>
-              <span className="text-xs font-medium w-12 text-center">{workspaceZoom}%</span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onZoomChange(Math.min(150, workspaceZoom + 10))}
-                className="h-7 w-7 p-0"
-              >
-                +
-              </Button>
-            </div>
-          </div>
-
-          {/* Theme Selector */}
+        {/* Theme Control */}
+        <div className="mb-4 pb-4 border-b">
           <div>
             <label className="text-xs font-medium mb-2 block flex items-center gap-1">
               <Palette className="h-3 w-3" />

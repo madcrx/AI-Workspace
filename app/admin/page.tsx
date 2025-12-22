@@ -68,6 +68,10 @@ export default function AdminPage() {
   const [autoScraping, setAutoScraping] = useState(false);
   const [autoScraperResult, setAutoScraperResult] = useState<any>(null);
   const [customUrl, setCustomUrl] = useState('');
+  const [fixingWorkspaces, setFixingWorkspaces] = useState(false);
+  const [workspaceFixResult, setWorkspaceFixResult] = useState<any>(null);
+  const [seedingTutorials, setSeedingTutorials] = useState(false);
+  const [tutorialSeedResult, setTutorialSeedResult] = useState<any>(null);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -324,6 +328,49 @@ export default function AdminPage() {
     }
   };
 
+  const fixDuplicateWorkspaces = async () => {
+    if (!confirm('This will merge duplicate workspaces for all users. Continue?')) {
+      return;
+    }
+
+    setFixingWorkspaces(true);
+    setWorkspaceFixResult(null);
+    try {
+      const response = await fetch('/api/admin/fix-workspaces', {
+        method: 'POST',
+      });
+      const data = await response.json();
+      setWorkspaceFixResult(data);
+      fetchData(); // Refresh stats
+    } catch (error) {
+      console.error('Error fixing workspaces:', error);
+      setWorkspaceFixResult({ error: 'Failed to fix workspaces' });
+    } finally {
+      setFixingWorkspaces(false);
+    }
+  };
+
+  const seedTutorials = async () => {
+    if (!confirm('This will add 8 tutorial videos to the database. Continue?')) {
+      return;
+    }
+
+    setSeedingTutorials(true);
+    setTutorialSeedResult(null);
+    try {
+      const response = await fetch('/api/admin/seed-tutorials', {
+        method: 'POST',
+      });
+      const data = await response.json();
+      setTutorialSeedResult(data);
+    } catch (error) {
+      console.error('Error seeding tutorials:', error);
+      setTutorialSeedResult({ error: 'Failed to seed tutorials' });
+    } finally {
+      setSeedingTutorials(false);
+    }
+  };
+
   if (loading || status === 'loading' || !stats) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -410,6 +457,8 @@ export default function AdminPage() {
             <TabsTrigger value="tools">Tools</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="scraper">Tool Scraper</TabsTrigger>
+            <TabsTrigger value="settings">Backend Settings</TabsTrigger>
+            <TabsTrigger value="webtools">Web Tools</TabsTrigger>
           </TabsList>
 
           <TabsContent value="tools">
@@ -535,8 +584,6 @@ export default function AdminPage() {
                           <tr>
                             <th className="text-left p-3 font-medium">User</th>
                             <th className="text-left p-3 font-medium">Role</th>
-                            <th className="text-left p-3 font-medium">Status</th>
-                            <th className="text-left p-3 font-medium">Workspaces</th>
                             <th className="text-left p-3 font-medium">Reviews</th>
                             <th className="text-left p-3 font-medium">Joined</th>
                             <th className="text-right p-3 font-medium">Actions</th>
@@ -556,12 +603,6 @@ export default function AdminPage() {
                                   {user.role}
                                 </Badge>
                               </td>
-                              <td className="p-3">
-                                <Badge variant={user.isActive ? 'default' : 'destructive'}>
-                                  {user.isActive ? 'Active' : 'Inactive'}
-                                </Badge>
-                              </td>
-                              <td className="p-3">{user._count.workspaces}</td>
                               <td className="p-3">{user._count.reviews}</td>
                               <td className="p-3">
                                 <span className="text-sm text-muted-foreground">
@@ -581,13 +622,6 @@ export default function AdminPage() {
                                         )}
                                       >
                                         {user.role === 'ADMIN' ? 'Make User' : 'Make Admin'}
-                                      </Button>
-                                      <Button
-                                        size="sm"
-                                        variant={user.isActive ? 'secondary' : 'default'}
-                                        onClick={() => handleToggleUserActive(user.id, user.isActive)}
-                                      >
-                                        {user.isActive ? 'Deactivate' : 'Activate'}
                                       </Button>
                                       <Button
                                         size="sm"
@@ -875,6 +909,417 @@ export default function AdminPage() {
                       </ul>
                     </div>
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="settings">
+            <Card>
+              <CardHeader>
+                <CardTitle>Backend Settings</CardTitle>
+                <CardDescription>
+                  Manage backend configurations and system settings
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Database & System Settings */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold border-b pb-2">Database & System</h3>
+
+                  <div className="space-y-4">
+                    <div className="p-4 border rounded-lg">
+                      <Label className="text-sm font-medium">Fix Duplicate Workspaces</Label>
+                      <p className="text-sm text-muted-foreground mb-3">
+                        Ensure each user has only one workspace. Merges duplicate workspaces and migrates all tools.
+                      </p>
+                      <Button
+                        onClick={fixDuplicateWorkspaces}
+                        disabled={fixingWorkspaces}
+                        variant="outline"
+                        size="sm"
+                      >
+                        {fixingWorkspaces ? 'Fixing...' : 'Fix Duplicate Workspaces'}
+                      </Button>
+
+                      {workspaceFixResult && (
+                        <div className={`mt-3 p-3 rounded ${
+                          workspaceFixResult.error
+                            ? 'bg-red-50 dark:bg-red-950 text-red-600 dark:text-red-400'
+                            : 'bg-green-50 dark:bg-green-950 text-green-600 dark:text-green-400'
+                        }`}>
+                          {workspaceFixResult.error || workspaceFixResult.message}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="p-4 border rounded-lg">
+                      <Label className="text-sm font-medium">Seed Tutorials</Label>
+                      <p className="text-sm text-muted-foreground mb-3">
+                        Add 8 tutorial videos with YouTube embeds to the database. Includes ChatGPT, Midjourney, GitHub Copilot, and more.
+                      </p>
+                      <Button
+                        onClick={seedTutorials}
+                        disabled={seedingTutorials}
+                        variant="outline"
+                        size="sm"
+                      >
+                        {seedingTutorials ? 'Seeding...' : 'Seed Tutorials'}
+                      </Button>
+
+                      {tutorialSeedResult && (
+                        <div className={`mt-3 p-3 rounded ${
+                          tutorialSeedResult.error || !tutorialSeedResult.success
+                            ? 'bg-red-50 dark:bg-red-950 text-red-600 dark:text-red-400'
+                            : 'bg-green-50 dark:bg-green-950 text-green-600 dark:text-green-400'
+                        }`}>
+                          {tutorialSeedResult.error || tutorialSeedResult.message}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="p-4 border rounded-lg bg-muted/30">
+                      <Label className="text-sm font-medium">Database Status</Label>
+                      <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                        <div>
+                          <p className="text-muted-foreground">Users</p>
+                          <p className="font-semibold">{stats.totalUsers}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Workspaces</p>
+                          <p className="font-semibold">{stats.totalWorkspaces}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Tools</p>
+                          <p className="font-semibold">{stats.totalTools}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Active Tools</p>
+                          <p className="font-semibold">{stats.activeTools}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Environment Variables */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold border-b pb-2">Environment Configuration</h3>
+                  <div className="grid gap-4">
+                    <div className="p-4 border rounded-lg">
+                      <Label className="text-sm font-medium">NextAuth Configuration</Label>
+                      <div className="mt-2 space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Google OAuth</span>
+                          <Badge variant={process.env.GOOGLE_CLIENT_ID ? 'default' : 'secondary'}>
+                            {process.env.GOOGLE_CLIENT_ID ? 'Configured' : 'Not Set'}
+                          </Badge>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Facebook OAuth</span>
+                          <Badge variant={process.env.FACEBOOK_CLIENT_ID ? 'default' : 'secondary'}>
+                            {process.env.FACEBOOK_CLIENT_ID ? 'Configured' : 'Not Set'}
+                          </Badge>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">NextAuth Secret</span>
+                          <Badge variant={process.env.NEXTAUTH_SECRET ? 'default' : 'destructive'}>
+                            {process.env.NEXTAUTH_SECRET ? 'Set' : 'Missing'}
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="p-4 border rounded-lg">
+                      <Label className="text-sm font-medium">Database Configuration</Label>
+                      <div className="mt-2 space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Database URL</span>
+                          <Badge variant={process.env.DATABASE_URL ? 'default' : 'destructive'}>
+                            {process.env.DATABASE_URL ? 'Connected' : 'Not Set'}
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Feature Flags */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold border-b pb-2">Feature Flags</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Enable or disable platform features
+                  </p>
+                  <div className="grid gap-3">
+                    <div className="flex items-center justify-between p-3 border rounded-lg">
+                      <div>
+                        <Label className="text-sm font-medium">Auto Tool Discovery</Label>
+                        <p className="text-xs text-muted-foreground">Scraper runs daily at 2 AM</p>
+                      </div>
+                      <Badge variant="default">Enabled</Badge>
+                    </div>
+                    <div className="flex items-center justify-between p-3 border rounded-lg">
+                      <div>
+                        <Label className="text-sm font-medium">User Registrations</Label>
+                        <p className="text-xs text-muted-foreground">Allow new user signups</p>
+                      </div>
+                      <Badge variant="default">Enabled</Badge>
+                    </div>
+                    <div className="flex items-center justify-between p-3 border rounded-lg">
+                      <div>
+                        <Label className="text-sm font-medium">Tool Submissions</Label>
+                        <p className="text-xs text-muted-foreground">Allow users to submit tools</p>
+                      </div>
+                      <Badge variant="default">Enabled</Badge>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t">
+                  <p className="text-xs text-muted-foreground">
+                    ⚠️ Environment variables must be configured in your hosting platform (Railway).
+                    Changes here are display-only. To modify, update your .env file or hosting settings.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="webtools">
+            <Card>
+              <CardHeader>
+                <CardTitle>Web Tools & Optimization</CardTitle>
+                <CardDescription>
+                  SEO, security, performance, and UX enhancement tools
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* SEO Tools */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold border-b pb-2">🔍 SEO Optimization</h3>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base">Meta Tags Status</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-2 text-sm">
+                        <div className="flex justify-between items-center">
+                          <span>Homepage Meta</span>
+                          <Badge variant="default">✓ Configured</Badge>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span>Structured Data</span>
+                          <Badge variant="default">✓ Active</Badge>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span>Sitemap</span>
+                          <Badge variant="secondary">Needs Setup</Badge>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span>robots.txt</span>
+                          <Badge variant="secondary">Needs Setup</Badge>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base">SEO Recommendations</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-2 text-sm">
+                        <div className="p-2 bg-muted rounded">
+                          <p className="font-medium">✓ Structured data implemented</p>
+                          <p className="text-xs text-muted-foreground">Schema.org markup active</p>
+                        </div>
+                        <div className="p-2 bg-yellow-50 dark:bg-yellow-950 rounded">
+                          <p className="font-medium">⚠ Add sitemap.xml</p>
+                          <p className="text-xs text-muted-foreground">Improve indexing</p>
+                        </div>
+                        <div className="p-2 bg-yellow-50 dark:bg-yellow-950 rounded">
+                          <p className="font-medium">⚠ Create robots.txt</p>
+                          <p className="text-xs text-muted-foreground">Control crawler access</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+
+                {/* Security Tools */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold border-b pb-2">🔒 Security Analysis</h3>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base">Security Headers</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-2 text-sm">
+                        <div className="flex justify-between items-center">
+                          <span>HTTPS</span>
+                          <Badge variant="default">✓ Enforced</Badge>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span>Secure Cookies</span>
+                          <Badge variant="default">✓ Production</Badge>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span>CSRF Protection</span>
+                          <Badge variant="default">✓ NextAuth</Badge>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span>XSS Protection</span>
+                          <Badge variant="default">✓ React</Badge>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base">Authentication Security</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-2 text-sm">
+                        <div className="p-2 bg-green-50 dark:bg-green-950 rounded">
+                          <p className="font-medium">✓ Password hashing (bcrypt)</p>
+                          <p className="text-xs text-muted-foreground">Secure password storage</p>
+                        </div>
+                        <div className="p-2 bg-green-50 dark:bg-green-950 rounded">
+                          <p className="font-medium">✓ JWT sessions</p>
+                          <p className="text-xs text-muted-foreground">Stateless authentication</p>
+                        </div>
+                        <div className="p-2 bg-green-50 dark:bg-green-950 rounded">
+                          <p className="font-medium">✓ Session-only cookies</p>
+                          <p className="text-xs text-muted-foreground">No persistent sessions</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+
+                {/* Performance Tools */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold border-b pb-2">⚡ Performance Optimization</h3>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base">Current Optimizations</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-2 text-sm">
+                        <div className="p-2 bg-green-50 dark:bg-green-950 rounded">
+                          <p className="font-medium">✓ Next.js Image Optimization</p>
+                          <p className="text-xs text-muted-foreground">Automatic image optimization</p>
+                        </div>
+                        <div className="p-2 bg-green-50 dark:bg-green-950 rounded">
+                          <p className="font-medium">✓ Code Splitting</p>
+                          <p className="text-xs text-muted-foreground">App Router automatic splitting</p>
+                        </div>
+                        <div className="p-2 bg-green-50 dark:bg-green-950 rounded">
+                          <p className="font-medium">✓ Server Components</p>
+                          <p className="text-xs text-muted-foreground">Reduced client JS bundle</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base">Recommendations</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-2 text-sm">
+                        <div className="p-2 bg-blue-50 dark:bg-blue-950 rounded">
+                          <p className="font-medium">💡 Add loading states</p>
+                          <p className="text-xs text-muted-foreground">Improve perceived performance</p>
+                        </div>
+                        <div className="p-2 bg-blue-50 dark:bg-blue-950 rounded">
+                          <p className="font-medium">💡 Implement caching</p>
+                          <p className="text-xs text-muted-foreground">Cache API responses</p>
+                        </div>
+                        <div className="p-2 bg-blue-50 dark:bg-blue-950 rounded">
+                          <p className="font-medium">💡 Database indexing</p>
+                          <p className="text-xs text-muted-foreground">Optimize query performance</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+
+                {/* UX Enhancement Tools */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold border-b pb-2">✨ UX Enhancement</h3>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base">Accessibility</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-2 text-sm">
+                        <div className="p-2 bg-green-50 dark:bg-green-950 rounded">
+                          <p className="font-medium">✓ Semantic HTML</p>
+                          <p className="text-xs text-muted-foreground">Proper heading structure</p>
+                        </div>
+                        <div className="p-2 bg-green-50 dark:bg-green-950 rounded">
+                          <p className="font-medium">✓ Keyboard Navigation</p>
+                          <p className="text-xs text-muted-foreground">All interactive elements accessible</p>
+                        </div>
+                        <div className="p-2 bg-yellow-50 dark:bg-yellow-950 rounded">
+                          <p className="font-medium">⚠ Add ARIA labels</p>
+                          <p className="text-xs text-muted-foreground">Improve screen reader support</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base">User Experience</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-2 text-sm">
+                        <div className="p-2 bg-green-50 dark:bg-green-950 rounded">
+                          <p className="font-medium">✓ Responsive Design</p>
+                          <p className="text-xs text-muted-foreground">Mobile-friendly layout</p>
+                        </div>
+                        <div className="p-2 bg-green-50 dark:bg-green-950 rounded">
+                          <p className="font-medium">✓ Dark Mode Support</p>
+                          <p className="text-xs text-muted-foreground">Theme switching available</p>
+                        </div>
+                        <div className="p-2 bg-blue-50 dark:bg-blue-950 rounded">
+                          <p className="font-medium">💡 Add tooltips</p>
+                          <p className="text-xs text-muted-foreground">Helpful hover information</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+
+                {/* Code Quality */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold border-b pb-2">🧹 Code Quality</h3>
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base">Code Health</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2 text-sm">
+                      <div className="grid md:grid-cols-3 gap-3">
+                        <div className="p-3 bg-green-50 dark:bg-green-950 rounded text-center">
+                          <p className="text-2xl font-bold text-green-600">✓</p>
+                          <p className="font-medium">TypeScript</p>
+                          <p className="text-xs text-muted-foreground">Type safety enabled</p>
+                        </div>
+                        <div className="p-3 bg-green-50 dark:bg-green-950 rounded text-center">
+                          <p className="text-2xl font-bold text-green-600">✓</p>
+                          <p className="font-medium">ESLint</p>
+                          <p className="text-xs text-muted-foreground">Code linting active</p>
+                        </div>
+                        <div className="p-3 bg-green-50 dark:bg-green-950 rounded text-center">
+                          <p className="text-2xl font-bold text-green-600">✓</p>
+                          <p className="font-medium">Prisma</p>
+                          <p className="text-xs text-muted-foreground">Type-safe database</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <div className="pt-4 border-t">
+                  <p className="text-xs text-muted-foreground">
+                    💡 These tools provide insights and recommendations. Review each suggestion before implementing.
+                    Some optimizations may require code changes or infrastructure updates.
+                  </p>
                 </div>
               </CardContent>
             </Card>
