@@ -72,6 +72,10 @@ export default function AdminPage() {
   const [workspaceFixResult, setWorkspaceFixResult] = useState<any>(null);
   const [seedingTutorials, setSeedingTutorials] = useState(false);
   const [tutorialSeedResult, setTutorialSeedResult] = useState<any>(null);
+  const [savedUrls, setSavedUrls] = useState<string[]>([]);
+  const [urlInputs, setUrlInputs] = useState<string[]>(Array(8).fill(''));
+  const [savingUrls, setSavingUrls] = useState(false);
+  const [urlSaveResult, setUrlSaveResult] = useState<any>(null);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -87,19 +91,31 @@ export default function AdminPage() {
 
   const fetchData = async () => {
     try {
-      const [statsRes, usersRes, toolsRes] = await Promise.all([
+      const [statsRes, usersRes, toolsRes, urlsRes] = await Promise.all([
         fetch('/api/admin/stats'),
         fetch('/api/admin/users'),
         fetch('/api/admin/tools'),
+        fetch('/api/admin/custom-scraper-urls'),
       ]);
 
       const statsData = await statsRes.json();
       const usersData = await usersRes.json();
       const toolsData = await toolsRes.json();
+      const urlsData = await urlsRes.json();
 
       setStats(statsData);
       setUsers(usersData);
       setTools(toolsData);
+
+      // Load saved URLs into inputs
+      if (Array.isArray(urlsData)) {
+        const urls = urlsData.map((u: any) => u.url);
+        setSavedUrls(urls);
+        setUrlInputs([
+          ...urls,
+          ...Array(Math.max(0, 8 - urls.length)).fill(''),
+        ].slice(0, 8));
+      }
     } catch (error) {
       console.error('Error fetching admin data:', error);
     } finally {
@@ -380,6 +396,46 @@ export default function AdminPage() {
     } finally {
       setSeedingTutorials(false);
     }
+  };
+
+  const saveCustomUrls = async () => {
+    const validUrls = urlInputs.filter((url) => url.trim().length > 0);
+
+    if (validUrls.length === 0) {
+      alert('Please enter at least one URL');
+      return;
+    }
+
+    if (!confirm(`Save ${validUrls.length} custom URL(s)? These will be scraped automatically each day.`)) {
+      return;
+    }
+
+    setSavingUrls(true);
+    setUrlSaveResult(null);
+    try {
+      const response = await fetch('/api/admin/custom-scraper-urls', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ urls: validUrls }),
+      });
+      const data = await response.json();
+      setUrlSaveResult(data);
+
+      if (data.success) {
+        setSavedUrls(validUrls);
+      }
+    } catch (error) {
+      console.error('Error saving custom URLs:', error);
+      setUrlSaveResult({ error: 'Failed to save custom URLs' });
+    } finally {
+      setSavingUrls(false);
+    }
+  };
+
+  const handleUrlInputChange = (index: number, value: string) => {
+    const newInputs = [...urlInputs];
+    newInputs[index] = value;
+    setUrlInputs(newInputs);
   };
 
   if (loading || status === 'loading' || !stats) {
@@ -818,9 +874,9 @@ export default function AdminPage() {
 
                 {/* Custom URL Section */}
                 <div className="border-t pt-4 space-y-4">
-                  <h4 className="font-semibold">Custom URL Scraper</h4>
+                  <h4 className="font-semibold">Custom URL Scraper (One-Time)</h4>
                   <p className="text-sm text-muted-foreground">
-                    Scrape tools from any website. Works with AI tool directories, listing pages, and individual tool pages.
+                    Scrape tools from any website once. Works with AI tool directories, listing pages, and individual tool pages.
                   </p>
                   <div className="flex gap-2">
                     <Input
@@ -838,6 +894,57 @@ export default function AdminPage() {
                       {autoScraping ? '🔄 Scraping...' : '🔍 Scrape'}
                     </Button>
                   </div>
+                </div>
+
+                {/* Saved URLs for Daily Scraping */}
+                <div className="border-t pt-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-semibold">Saved URLs (Auto-Scraped Daily)</h4>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Save up to 8 URLs that will be automatically scraped every day at 2 AM
+                      </p>
+                    </div>
+                    <Badge variant="outline">{savedUrls.length}/8 Saved</Badge>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-3">
+                    {urlInputs.map((url, index) => (
+                      <div key={index} className="flex gap-2 items-center">
+                        <span className="text-xs text-muted-foreground w-4">{index + 1}.</span>
+                        <Input
+                          type="url"
+                          placeholder={`URL ${index + 1} (optional)`}
+                          value={url}
+                          onChange={(e) => handleUrlInputChange(index, e.target.value)}
+                          disabled={savingUrls}
+                          className="flex-1"
+                        />
+                      </div>
+                    ))}
+                  </div>
+
+                  <Button
+                    onClick={saveCustomUrls}
+                    disabled={savingUrls}
+                    className="w-full"
+                    size="lg"
+                    variant="default"
+                  >
+                    {savingUrls ? '💾 Saving URLs...' : '💾 Save URLs for Daily Scraping'}
+                  </Button>
+
+                  {urlSaveResult && (
+                    <div className={`p-3 rounded ${
+                      urlSaveResult.error
+                        ? 'bg-red-50 dark:bg-red-950 text-red-600 dark:text-red-400'
+                        : 'bg-green-50 dark:bg-green-950 text-green-600 dark:text-green-400'
+                    }`}>
+                      <p className="text-sm font-medium">
+                        {urlSaveResult.error || `✅ Successfully saved ${urlSaveResult.saved} URL(s). These will be scraped automatically every day at 2 AM.`}
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Results Display */}
