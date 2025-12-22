@@ -1018,7 +1018,14 @@ export default function AdminPage() {
                                   Found: {result.toolsFound} | Added: {result.toolsAdded} | Updated: {result.toolsUpdated} | {result.executionTime}ms
                                 </p>
                                 {result.errors && result.errors.length > 0 && (
-                                  <p className="text-red-600 dark:text-red-400 mt-1">{result.errors.length} errors</p>
+                                  <div className="mt-2 p-2 bg-red-50 dark:bg-red-950/50 rounded border border-red-200 dark:border-red-800">
+                                    <p className="text-red-600 dark:text-red-400 font-semibold mb-1">⚠️ {result.errors.length} Error{result.errors.length > 1 ? 's' : ''}:</p>
+                                    <ul className="text-red-600 dark:text-red-400 space-y-1 list-disc list-inside">
+                                      {result.errors.map((error: string, errIdx: number) => (
+                                        <li key={errIdx} className="text-xs">{error}</li>
+                                      ))}
+                                    </ul>
+                                  </div>
                                 )}
                               </div>
                             ))}
