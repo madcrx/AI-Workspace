@@ -18,6 +18,8 @@ export async function GET() {
       totalWorkspaces,
       totalViews,
       totalClicks,
+      totalTutorials,
+      tutorials,
     ] = await Promise.all([
       prisma.user.count(),
       prisma.tool.count(),
@@ -25,7 +27,15 @@ export async function GET() {
       prisma.workspace.count(),
       prisma.tool.aggregate({ _sum: { views: true } }),
       prisma.tool.aggregate({ _sum: { clicks: true } }),
+      prisma.tutorial.count(),
+      prisma.tutorial.findMany({ select: { affiliateLinks: true } }),
     ]);
+
+    // Count total affiliate links across all tutorials
+    const totalAffiliateLinks = tutorials.reduce(
+      (acc: number, tutorial: any) => acc + (tutorial.affiliateLinks?.length || 0),
+      0
+    );
 
     const stats = {
       totalUsers,
@@ -35,6 +45,8 @@ export async function GET() {
       totalWorkspaces,
       totalViews: totalViews._sum.views || 0,
       totalClicks: totalClicks._sum.clicks || 0,
+      totalTutorials,
+      totalAffiliateLinks,
     };
 
     return NextResponse.json(stats);

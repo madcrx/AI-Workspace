@@ -1,0 +1,16 @@
+{
+  "name": "AI Workspace",
+  "short_name": "AI Workspace",
+  "description": "Discover and organize AI tools for your workflow",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    }
+  ],
+  "theme_color": "#ffffff",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "start_url": "/"
+}

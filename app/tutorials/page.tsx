@@ -86,7 +86,7 @@ export default function TutorialsPage() {
             Learn AI Tools & Techniques
           </h2>
           <p className="text-xl text-muted-foreground mb-6">
-            Master AI tools with step-by-step video tutorials and affiliate deals
+            Master AI tools with step-by-step video tutorials
           </p>
         </div>
 

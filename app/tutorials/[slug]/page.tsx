@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { use } from 'react';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -27,18 +26,17 @@ interface Tutorial {
   createdAt: string;
 }
 
-export default function TutorialDetailPage({ params }: { params: Promise<{ slug: string }> }) {
-  const resolvedParams = use(params);
+export default function TutorialDetailPage({ params }: { params: { slug: string } }) {
   const [tutorial, setTutorial] = useState<Tutorial | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchTutorial();
-  }, [resolvedParams.slug]);
+  }, [params.slug]);
 
   const fetchTutorial = async () => {
     try {
-      const response = await fetch(`/api/tutorials/${resolvedParams.slug}`);
+      const response = await fetch(`/api/tutorials/${params.slug}`);
       const data = await response.json();
       setTutorial(data);
     } catch (error) {
