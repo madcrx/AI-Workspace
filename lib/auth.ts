@@ -55,41 +55,10 @@ export const authOptions: NextAuthOptions = {
   ],
   session: {
     strategy: 'jwt',
-    // No maxAge - session expires when browser closes
+    // Omitting maxAge completely to use session cookies
   },
-  cookies: {
-    sessionToken: {
-      name: `next-auth.session-token`,
-      options: {
-        httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: process.env.NODE_ENV === 'production',
-        // Explicitly set maxAge to undefined for true session cookie
-        maxAge: undefined,
-      },
-    },
-    callbackUrl: {
-      name: `next-auth.callback-url`,
-      options: {
-        httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: process.env.NODE_ENV === 'production',
-        maxAge: undefined,
-      },
-    },
-    csrfToken: {
-      name: `next-auth.csrf-token`,
-      options: {
-        httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: process.env.NODE_ENV === 'production',
-        maxAge: undefined,
-      },
-    },
-  },
+  useSecureCookies: process.env.NODE_ENV === 'production',
+  // Omitting cookies config to let NextAuth use session cookie defaults
   pages: {
     signIn: '/auth/signin',
   },
