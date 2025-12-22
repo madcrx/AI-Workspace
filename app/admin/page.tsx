@@ -306,6 +306,14 @@ export default function AdminPage() {
   };
 
   const runAutoScraper = async (url?: string) => {
+    const confirmMessage = url
+      ? `Scrape and upload tools from: ${url}?\n\nFound tools will be automatically added to the database.`
+      : 'Run automatic tool discovery?\n\nThis will scrape multiple sources and automatically add new tools to the database.';
+
+    if (!confirm(confirmMessage)) {
+      return;
+    }
+
     setAutoScraping(true);
     setAutoScraperResult(null);
     try {
@@ -316,7 +324,10 @@ export default function AdminPage() {
       });
       const data = await response.json();
       setAutoScraperResult(data);
-      fetchData(); // Refresh stats
+
+      // Refresh stats to show updated tool counts
+      await fetchData();
+
       if (url) {
         setCustomUrl(''); // Clear custom URL after successful scrape
       }
@@ -454,7 +465,7 @@ export default function AdminPage() {
         <Tabs defaultValue="users" className="space-y-4">
           <TabsList>
             <TabsTrigger value="users">Users</TabsTrigger>
-            <TabsTrigger value="tools">Tools</TabsTrigger>
+            <TabsTrigger value="tools">AI Tools</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="scraper">Tool Scraper</TabsTrigger>
             <TabsTrigger value="settings">Backend Settings</TabsTrigger>
@@ -465,8 +476,8 @@ export default function AdminPage() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-2xl font-bold">All Tools ({tools.length})</h2>
-                  <p className="text-sm text-muted-foreground">Manage all tools in the platform</p>
+                  <h2 className="text-2xl font-bold">All AI Tools ({tools.length})</h2>
+                  <p className="text-sm text-muted-foreground">Manage all AI tools in the platform</p>
                 </div>
               </div>
               {tools.length === 0 ? (
@@ -836,27 +847,53 @@ export default function AdminPage() {
                       ? 'bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800'
                       : 'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800'
                   }`}>
-                    <h4 className="font-semibold mb-3">Scraper Results</h4>
+                    <h4 className="font-semibold mb-3">✅ Scraper Results - Tools Uploaded to Database</h4>
                     {autoScraperResult.error ? (
                       <p className="text-sm text-red-600 dark:text-red-400">{autoScraperResult.error}</p>
                     ) : (
                       <div className="space-y-3">
+                        <p className="text-sm font-medium">
+                          Successfully uploaded {autoScraperResult.totalAdded || 0} new tools and updated {autoScraperResult.totalUpdated || 0} existing tools in the database.
+                        </p>
                         <div className="grid grid-cols-4 gap-3">
                           <div className="p-3 bg-white dark:bg-gray-800 rounded">
-                            <p className="text-xs text-muted-foreground">Found</p>
+                            <p className="text-xs text-muted-foreground">Discovered</p>
                             <p className="text-2xl font-bold text-blue-600">{autoScraperResult.totalFound || 0}</p>
                           </div>
                           <div className="p-3 bg-white dark:bg-gray-800 rounded">
-                            <p className="text-xs text-muted-foreground">Added</p>
+                            <p className="text-xs text-muted-foreground">✓ Uploaded</p>
                             <p className="text-2xl font-bold text-green-600">{autoScraperResult.totalAdded || 0}</p>
                           </div>
                           <div className="p-3 bg-white dark:bg-gray-800 rounded">
-                            <p className="text-xs text-muted-foreground">Updated</p>
+                            <p className="text-xs text-muted-foreground">✓ Updated</p>
                             <p className="text-2xl font-bold text-yellow-600">{autoScraperResult.totalUpdated || 0}</p>
                           </div>
                           <div className="p-3 bg-white dark:bg-gray-800 rounded">
                             <p className="text-xs text-muted-foreground">Sources</p>
                             <p className="text-2xl font-bold">{autoScraperResult.totalSources || 0}</p>
+                          </div>
+                        </div>
+
+                        {/* Current Database Statistics */}
+                        <div className="pt-3 border-t mt-3">
+                          <p className="text-xs font-medium mb-2">Current Database Status:</p>
+                          <div className="grid grid-cols-4 gap-2 text-sm">
+                            <div className="p-2 bg-white dark:bg-gray-800 rounded">
+                              <p className="text-xs text-muted-foreground">Total Tools</p>
+                              <p className="font-bold">{stats.totalTools}</p>
+                            </div>
+                            <div className="p-2 bg-white dark:bg-gray-800 rounded">
+                              <p className="text-xs text-muted-foreground">Active Tools</p>
+                              <p className="font-bold">{stats.activeTools}</p>
+                            </div>
+                            <div className="p-2 bg-white dark:bg-gray-800 rounded">
+                              <p className="text-xs text-muted-foreground">Users</p>
+                              <p className="font-bold">{stats.totalUsers}</p>
+                            </div>
+                            <div className="p-2 bg-white dark:bg-gray-800 rounded">
+                              <p className="text-xs text-muted-foreground">Workspaces</p>
+                              <p className="font-bold">{stats.totalWorkspaces}</p>
+                            </div>
                           </div>
                         </div>
 
@@ -1040,6 +1077,45 @@ export default function AdminPage() {
                           </Badge>
                         </div>
                       </div>
+                    </div>
+
+                    <div className="p-4 border rounded-lg">
+                      <Label className="text-sm font-medium">Email / SMTP Configuration</Label>
+                      <div className="mt-2 space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">SMTP Host</span>
+                          <Badge variant={process.env.SMTP_HOST ? 'default' : 'secondary'}>
+                            {process.env.SMTP_HOST ? 'Configured' : 'Not Set'}
+                          </Badge>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">SMTP Port</span>
+                          <Badge variant={process.env.SMTP_PORT ? 'default' : 'secondary'}>
+                            {process.env.SMTP_PORT || 'Not Set'}
+                          </Badge>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">SMTP User</span>
+                          <Badge variant={process.env.SMTP_USER ? 'default' : 'secondary'}>
+                            {process.env.SMTP_USER ? 'Configured' : 'Not Set'}
+                          </Badge>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">SMTP Password</span>
+                          <Badge variant={process.env.SMTP_PASSWORD ? 'default' : 'destructive'}>
+                            {process.env.SMTP_PASSWORD ? 'Set' : 'Not Set'}
+                          </Badge>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">From Email</span>
+                          <Badge variant={process.env.EMAIL_FROM ? 'default' : 'secondary'}>
+                            {process.env.EMAIL_FROM || 'Not Set'}
+                          </Badge>
+                        </div>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-3">
+                        Used for password reset emails, notifications, and system alerts
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -1315,10 +1391,191 @@ export default function AdminPage() {
                   </Card>
                 </div>
 
+                {/* Automated Optimization Tools */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold border-b pb-2">🤖 AI-Powered Optimization Tools</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Use these free AI tools to automatically implement SEO and optimization recommendations
+                  </p>
+
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {/* Sitemap Generator */}
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-sm">Sitemap Generator</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-2">
+                        <p className="text-xs text-muted-foreground">
+                          Automatically generate sitemap.xml for better SEO
+                        </p>
+                        <Button
+                          size="sm"
+                          className="w-full"
+                          onClick={() => window.open('https://www.xml-sitemaps.com/', '_blank')}
+                        >
+                          Generate Sitemap
+                        </Button>
+                      </CardContent>
+                    </Card>
+
+                    {/* Robots.txt Generator */}
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-sm">Robots.txt Generator</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-2">
+                        <p className="text-xs text-muted-foreground">
+                          Create custom robots.txt file for crawler control
+                        </p>
+                        <Button
+                          size="sm"
+                          className="w-full"
+                          onClick={() => window.open('https://www.robotsgenerator.com/', '_blank')}
+                        >
+                          Generate Robots.txt
+                        </Button>
+                      </CardContent>
+                    </Card>
+
+                    {/* SEO Analyzer */}
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-sm">SEO Analyzer</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-2">
+                        <p className="text-xs text-muted-foreground">
+                          Analyze your site&apos;s SEO score and get recommendations
+                        </p>
+                        <Button
+                          size="sm"
+                          className="w-full"
+                          onClick={() => window.open('https://www.seoptimer.com/', '_blank')}
+                        >
+                          Analyze SEO
+                        </Button>
+                      </CardContent>
+                    </Card>
+
+                    {/* Meta Tags Generator */}
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-sm">Meta Tags Generator</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-2">
+                        <p className="text-xs text-muted-foreground">
+                          Generate optimized meta tags for social sharing
+                        </p>
+                        <Button
+                          size="sm"
+                          className="w-full"
+                          onClick={() => window.open('https://metatags.io/', '_blank')}
+                        >
+                          Generate Meta Tags
+                        </Button>
+                      </CardContent>
+                    </Card>
+
+                    {/* Lighthouse Audit */}
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-sm">Performance Audit</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-2">
+                        <p className="text-xs text-muted-foreground">
+                          Run Google Lighthouse audit for performance insights
+                        </p>
+                        <Button
+                          size="sm"
+                          className="w-full"
+                          onClick={() => window.open('https://pagespeed.web.dev/', '_blank')}
+                        >
+                          Run Audit
+                        </Button>
+                      </CardContent>
+                    </Card>
+
+                    {/* Image Optimizer */}
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-sm">Image Optimizer</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-2">
+                        <p className="text-xs text-muted-foreground">
+                          Compress and optimize images for better performance
+                        </p>
+                        <Button
+                          size="sm"
+                          className="w-full"
+                          onClick={() => window.open('https://tinypng.com/', '_blank')}
+                        >
+                          Optimize Images
+                        </Button>
+                      </CardContent>
+                    </Card>
+
+                    {/* SSL Checker */}
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-sm">SSL Security Check</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-2">
+                        <p className="text-xs text-muted-foreground">
+                          Verify SSL certificate and security configuration
+                        </p>
+                        <Button
+                          size="sm"
+                          className="w-full"
+                          onClick={() => window.open('https://www.ssllabs.com/ssltest/', '_blank')}
+                        >
+                          Check SSL
+                        </Button>
+                      </CardContent>
+                    </Card>
+
+                    {/* Accessibility Checker */}
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-sm">Accessibility Checker</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-2">
+                        <p className="text-xs text-muted-foreground">
+                          Check WCAG compliance and accessibility issues
+                        </p>
+                        <Button
+                          size="sm"
+                          className="w-full"
+                          onClick={() => window.open('https://wave.webaim.org/', '_blank')}
+                        >
+                          Check Accessibility
+                        </Button>
+                      </CardContent>
+                    </Card>
+
+                    {/* Schema Validator */}
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-sm">Schema Validator</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-2">
+                        <p className="text-xs text-muted-foreground">
+                          Validate structured data and schema markup
+                        </p>
+                        <Button
+                          size="sm"
+                          className="w-full"
+                          onClick={() => window.open('https://validator.schema.org/', '_blank')}
+                        >
+                          Validate Schema
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+
                 <div className="pt-4 border-t">
                   <p className="text-xs text-muted-foreground">
-                    💡 These tools provide insights and recommendations. Review each suggestion before implementing.
-                    Some optimizations may require code changes or infrastructure updates.
+                    💡 These free AI tools help implement the recommendations above. All tools open in new tabs for easy access.
+                    Review results and apply changes as needed.
                   </p>
                 </div>
               </CardContent>

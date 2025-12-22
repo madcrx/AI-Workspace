@@ -413,7 +413,7 @@ export default function WorkspacePage() {
       </header>
 
       <div className="flex justify-center">
-        <main className={`w-full max-w-7xl px-4 py-8 pl-[calc(20rem+1rem)] transition-all duration-300 ${sidebarOpen ? 'pr-[calc(12.5%+1rem)]' : ''}`}>
+        <main className="w-full max-w-7xl px-4 py-8 pl-[calc(20rem+1rem)]">
           <div className="mb-6 flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold mb-2">
