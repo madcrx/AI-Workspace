@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Sparkles, Search, Play, Clock, TrendingUp, ArrowLeft } from 'lucide-react';
+import { Header } from '@/components/layout/header';
 
 interface Tutorial {
   id: string;
@@ -76,26 +77,7 @@ export default function TutorialsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Link href="/" className="flex items-center gap-2">
-                <Sparkles className="h-6 w-6 text-primary" />
-                <span className="text-xl font-bold">AI Workspace</span>
-              </Link>
-              <span className="text-muted-foreground">/</span>
-              <h1 className="text-xl font-semibold">AI Tutorials</h1>
-            </div>
-            <Link href="/">
-              <Button variant="outline" size="sm" className="gap-2">
-                <ArrowLeft className="h-4 w-4" />
-                Back to Home
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       <main className="container mx-auto px-4 py-8">
         {/* Hero Section */}

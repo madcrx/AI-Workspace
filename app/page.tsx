@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Sparkles, Layout, Zap, Shield, Search, Users } from 'lucide-react';
 import { FeaturedToolsCarousel } from '@/components/featured-tools-carousel';
+import { Header } from '@/components/layout/header';
 
 export default function HomePage() {
   const { data: session } = useSession();
@@ -39,36 +40,7 @@ export default function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-      <header className="border-b">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Sparkles className="h-6 w-6 text-primary" />
-            <span className="text-xl font-bold">AI Workspace</span>
-          </div>
-          <nav className="flex items-center gap-4">
-            <Link href="/tools">
-              <Button variant="ghost">Explore Tools</Button>
-            </Link>
-            <Link href="/tutorials">
-              <Button variant="ghost">Tutorials</Button>
-            </Link>
-            {session ? (
-              <Link href="/workspace">
-                <Button>My Workspace</Button>
-              </Link>
-            ) : (
-              <>
-                <Link href="/auth/signin">
-                  <Button variant="ghost">Sign In</Button>
-                </Link>
-                <Link href="/auth/signup">
-                  <Button>Get Started</Button>
-                </Link>
-              </>
-            )}
-          </nav>
-        </div>
-      </header>
+      <Header />
 
       <main>
         <section className="py-20 px-4 text-center bg-gradient-to-b from-primary/5 to-background">

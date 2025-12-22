@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Sparkles, Search, ExternalLink, TrendingUp, Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { Header } from '@/components/layout/header';
 
 interface Tool {
   id: string;
@@ -152,30 +153,9 @@ export default function ToolsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b sticky top-0 bg-background z-10">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <Sparkles className="h-6 w-6 text-primary" />
-            <span className="text-xl font-bold">AI Workspace</span>
-          </Link>
-          <nav className="flex items-center gap-4">
-            {session ? (
-              <Link href="/workspace">
-                <Button variant="default">My Workspace</Button>
-              </Link>
-            ) : (
-              <>
-                <Link href="/auth/signin">
-                  <Button variant="ghost">Sign In</Button>
-                </Link>
-                <Link href="/auth/signup">
-                  <Button>Get Started</Button>
-                </Link>
-              </>
-            )}
-          </nav>
-        </div>
-      </header>
+      <div className="sticky top-0 bg-background z-10">
+        <Header />
+      </div>
 
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
