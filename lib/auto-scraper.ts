@@ -332,6 +332,34 @@ export class AutoScraper {
       const html = await response.text();
       const $ = cheerio.load(html);
 
+      // Detect if site is likely JavaScript-heavy
+      const bodyText = $('body').text().trim();
+      const scriptTags = $('script').length;
+      const hasReactRoot = $('#root, #__next, [data-reactroot]').length > 0;
+      const hasVueApp = $('[data-v-]').length > 0 || $('#app').length > 0;
+
+      if (bodyText.length < 500 && scriptTags > 10 && (hasReactRoot || hasVueApp)) {
+        console.warn(`⚠️ Site appears to use heavy client-side JavaScript (React/Vue/Next.js)`);
+        this.errors.push(
+          'This site appears to load content dynamically with JavaScript. The scraper can only access static HTML content. ' +
+          'Some or all tools may not be visible. Consider using tools from this site sparingly or manually.'
+        );
+      }
+
+      // Try site-specific scraping strategies first
+      const siteSpecificTools = await this.trySiteSpecificScraping(url, $);
+      if (siteSpecificTools.length > 0) {
+        console.log(`✨ Used site-specific scraping strategy, found ${siteSpecificTools.length} tools`);
+        tools.push(...siteSpecificTools);
+
+        // Remove duplicates
+        const uniqueTools = tools.filter((tool, index, self) =>
+          index === self.findIndex((t) => t.name.toLowerCase() === tool.name.toLowerCase())
+        );
+
+        return await this.processScrapedTools(uniqueTools, `Custom URL: ${url}`);
+      }
+
       // PRIORITY STRATEGY: Look for numbered lists and directories first
 
       // Strategy 1: Look for ordered lists (ol > li)
@@ -445,7 +473,23 @@ export class AutoScraper {
       console.log(`✅ Extracted ${uniqueTools.length} unique tools from ${url}`);
 
       if (uniqueTools.length === 0) {
-        this.errors.push('No tools found in numbered lists or directory format. The page might not be a tool directory or list.');
+        // Provide more helpful error messages
+        if (bodyText.length < 500) {
+          this.errors.push(
+            'Page has minimal content. This site likely uses JavaScript to load content dynamically, ' +
+            'which cannot be scraped with basic HTTP requests. Try a different URL or source.'
+          );
+        } else if ($('div, article, section').length < 10) {
+          this.errors.push(
+            'Page structure is very simple. This might not be a tool directory page, or it uses ' +
+            'an unusual HTML structure that our scraper cannot parse.'
+          );
+        } else {
+          this.errors.push(
+            'No tools found in numbered lists or directory format. The page might not be a tool directory, ' +
+            'or it uses a custom HTML structure. Try a different page URL (like a category page or full list page).'
+          );
+        }
       }
 
       return await this.processScrapedTools(uniqueTools, `Custom URL: ${url}`);
@@ -466,12 +510,14 @@ export class AutoScraper {
 
     if (!name || name.length < 3 || name.length > 150) return null;
 
-    // Extract description
+    // Extract description - try multiple selectors
     const description =
-      $elem.find('p, [class*="description"], [class*="desc"], [class*="summary"]').first().text().trim() ||
-      $elem.clone().children('h1, h2, h3, h4, strong, b, a').remove().end().text().trim();
+      $elem.find('p, [class*="description"], [class*="desc"], [class*="summary"], [class*="tagline"], span').first().text().trim() ||
+      $elem.find('div').first().text().trim() ||
+      $elem.clone().children('h1, h2, h3, h4, h5, h6, strong, b, a').remove().end().text().trim();
 
-    if (!description || description.length < 20) return null;
+    // Be more lenient with description length for better coverage
+    if (!description || description.length < 15) return null;
 
     // Extract URL
     let websiteUrl = $elem.find('a[href]').first().attr('href') || '';
@@ -533,6 +579,124 @@ export class AutoScraper {
       category: this.categorizeFromDescription(description),
       pricing: this.detectPricing($row.text()),
     };
+  }
+
+  /**
+   * Try site-specific scraping strategies for known AI tool directories
+   */
+  private async trySiteSpecificScraping(url: string, $: cheerio.CheerioAPI): Promise<ScrapedTool[]> {
+    const tools: ScrapedTool[] = [];
+    const hostname = new URL(url).hostname.toLowerCase();
+
+    try {
+      // TheresAnAIForThat.com - Look for tool cards
+      if (hostname.includes('theresanaiforthat')) {
+        console.log('🎯 Using TheresAnAIForThat.com specific strategy');
+        const toolCards = $('[class*="tool"], [class*="item"], article, .grid > div').slice(0, 100);
+        toolCards.each((i, elem) => {
+          const $elem = $(elem);
+          const name = $elem.find('h2, h3, h4, [class*="title"], [class*="name"]').first().text().trim();
+          const description = $elem.find('p, [class*="description"]').first().text().trim();
+          const link = $elem.find('a[href]').first().attr('href');
+
+          if (name && name.length > 2 && description && description.length > 20) {
+            tools.push({
+              name: name.substring(0, 100),
+              description: description.substring(0, 500),
+              websiteUrl: link && link.startsWith('http') ? link : url,
+              category: this.categorizeFromDescription(description),
+              pricing: this.detectPricing($elem.text()),
+              logoUrl: $elem.find('img').first().attr('src'),
+            });
+          }
+        });
+      }
+
+      // FutureTools.io - Grid/card based layout
+      if (hostname.includes('futuretools')) {
+        console.log('🎯 Using FutureTools.io specific strategy');
+        const toolCards = $('[class*="tool"], [class*="card"], .grid > div, [class*="item"]').slice(0, 100);
+        toolCards.each((i, elem) => {
+          const $elem = $(elem);
+          const extracted = this.extractToolFromElement($elem, url);
+          if (extracted) tools.push(extracted);
+        });
+      }
+
+      // Futurepedia.io - Directory listing
+      if (hostname.includes('futurepedia')) {
+        console.log('🎯 Using Futurepedia.io specific strategy');
+        const toolItems = $('[class*="tool"], [class*="directory"], article, [class*="list-item"]').slice(0, 100);
+        toolItems.each((i, elem) => {
+          const $elem = $(elem);
+          const extracted = this.extractToolFromElement($elem, url);
+          if (extracted) tools.push(extracted);
+        });
+      }
+
+      // ProductHunt - Product listings
+      if (hostname.includes('producthunt')) {
+        console.log('🎯 Using ProductHunt.com specific strategy');
+        const products = $('[class*="product"], [class*="item"], article').slice(0, 100);
+        products.each((i, elem) => {
+          const $elem = $(elem);
+          const name = $elem.find('h2, h3, [class*="name"], [class*="title"]').first().text().trim();
+          const description = $elem.find('p, [class*="tagline"], [class*="description"]').first().text().trim();
+
+          if (name && description && description.length > 15) {
+            tools.push({
+              name: name.substring(0, 100),
+              description: description.substring(0, 500),
+              websiteUrl: url,
+              category: this.categorizeFromDescription(description),
+              pricing: 'FREEMIUM',
+              logoUrl: $elem.find('img').first().attr('src'),
+            });
+          }
+        });
+      }
+
+      // AIxploria.com - List/directory format
+      if (hostname.includes('aixploria')) {
+        console.log('🎯 Using AIxploria.com specific strategy');
+        const aiTools = $('article, [class*="tool"], [class*="ai"], li > a').slice(0, 100);
+        aiTools.each((i, elem) => {
+          const $elem = $(elem);
+          const extracted = this.extractToolFromElement($elem, url);
+          if (extracted) tools.push(extracted);
+        });
+      }
+
+      // ToolBit.ai & RankMyAI.com - Ranking/list format
+      if (hostname.includes('toolbit') || hostname.includes('rankmyai')) {
+        console.log('🎯 Using ranking site specific strategy');
+        // Try table rows first (common in ranking sites)
+        const tableRows = $('table tr').slice(1, 101); // Skip header
+        if (tableRows.length > 5) {
+          tableRows.each((i, elem) => {
+            const $row = $(elem);
+            const extracted = this.extractToolFromTableRow($row, url);
+            if (extracted) tools.push(extracted);
+          });
+        }
+
+        // Also try list items with rankings
+        if (tools.length < 5) {
+          const rankedItems = $('li, [class*="rank"], [class*="item"]').slice(0, 100);
+          rankedItems.each((i, elem) => {
+            const $elem = $(elem);
+            const extracted = this.extractToolFromElement($elem, url);
+            if (extracted) tools.push(extracted);
+          });
+        }
+      }
+
+      console.log(`✅ Site-specific strategy found ${tools.length} tools for ${hostname}`);
+    } catch (error) {
+      console.error(`Error in site-specific scraping for ${hostname}:`, error);
+    }
+
+    return tools;
   }
 
   /**
