@@ -24,6 +24,33 @@ export async function POST(request: NextRequest) {
     } else {
       console.log('🚀 Manual auto-scraper triggered by admin');
       results = await scraper.scrapeAll('MANUAL');
+
+      // Also scrape saved custom URLs
+      const customUrls = await prisma.customScraperUrl.findMany({
+        where: { isActive: true },
+      });
+
+      if (customUrls.length > 0) {
+        console.log(`🔗 Scraping ${customUrls.length} saved custom URLs...`);
+        for (const urlRecord of customUrls) {
+          try {
+            const result = await scraper.scrapeCustomUrl(urlRecord.url);
+            results.push(result);
+          } catch (error) {
+            console.error(`Error scraping custom URL ${urlRecord.url}:`, error);
+            results.push({
+              source: urlRecord.url,
+              toolsFound: 0,
+              toolsAdded: 0,
+              toolsUpdated: 0,
+              toolsSkipped: 0,
+              errors: [`Failed to scrape: ${error}`],
+              status: 'FAILED',
+              executionTime: 0,
+            });
+          }
+        }
+      }
     }
 
     const summary = {

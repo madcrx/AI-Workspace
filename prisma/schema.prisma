@@ -261,3 +261,12 @@ model ScraperLog {
   triggeredBy     String   @default("CRON") // CRON, MANUAL
   createdAt       DateTime @default(now())
 }
+
+model CustomScraperUrl {
+  id          String   @id @default(cuid())
+  url         String   @unique
+  isActive    Boolean  @default(true)
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
