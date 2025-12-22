@@ -21,6 +21,8 @@ interface Stats {
   totalWorkspaces: number;
   totalViews: number;
   totalClicks: number;
+  totalTutorials: number;
+  totalAffiliateLinks: number;
 }
 
 interface User {
@@ -524,6 +526,7 @@ export default function AdminPage() {
             <TabsTrigger value="tools">AI Tools</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="scraper">Tool Scraper</TabsTrigger>
+            <TabsTrigger value="monetization">Monetization</TabsTrigger>
             <TabsTrigger value="settings">Backend Settings</TabsTrigger>
             <TabsTrigger value="webtools">Web Tools</TabsTrigger>
           </TabsList>
@@ -1057,6 +1060,159 @@ export default function AdminPage() {
                         <li>• Updates existing tool data</li>
                         <li>• Logs all actions for review</li>
                         <li>• No manual approval needed</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="monetization">
+            <Card>
+              <CardHeader>
+                <CardTitle>💰 Monetization & YouTube Integration</CardTitle>
+                <CardDescription>
+                  Manage affiliate links, sponsored content, and YouTube tutorial monetization
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* YouTube Tutorial Monetization */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold border-b pb-2 flex items-center gap-2">
+                    <span>📺</span> YouTube Tutorial Monetization
+                  </h3>
+
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {/* Stats Cards */}
+                    <Card className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950/20 dark:to-red-900/20 border-red-200 dark:border-red-800">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-sm font-medium text-muted-foreground">Total Tutorials</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-3xl font-bold">{stats.totalTutorials || 0}</p>
+                        <p className="text-xs text-muted-foreground mt-1">Active video tutorials</p>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/20 dark:to-green-900/20 border-green-200 dark:border-green-800">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-sm font-medium text-muted-foreground">Affiliate Links</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-3xl font-bold">{stats.totalAffiliateLinks || 0}</p>
+                        <p className="text-xs text-muted-foreground mt-1">Active affiliate offers</p>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Monetization Features */}
+                  <div className="space-y-3">
+                    <h4 className="font-medium">Monetization Features</h4>
+                    <div className="grid md:grid-cols-2 gap-3">
+                      <div className="p-4 border rounded-lg bg-card">
+                        <h5 className="font-semibold mb-2 flex items-center gap-2">
+                          <span className="text-xl">🔗</span> Affiliate Links
+                        </h5>
+                        <p className="text-sm text-muted-foreground mb-3">
+                          Add affiliate links to tutorials with special offers and discount codes
+                        </p>
+                        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                          ✓ Active
+                        </Badge>
+                      </div>
+
+                      <div className="p-4 border rounded-lg bg-card">
+                        <h5 className="font-semibold mb-2 flex items-center gap-2">
+                          <span className="text-xl">📺</span> YouTube Embed
+                        </h5>
+                        <p className="text-sm text-muted-foreground mb-3">
+                          Seamless YouTube video integration with automatic thumbnail loading
+                        </p>
+                        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                          ✓ Active
+                        </Badge>
+                      </div>
+
+                      <div className="p-4 border rounded-lg bg-card">
+                        <h5 className="font-semibold mb-2 flex items-center gap-2">
+                          <span className="text-xl">💸</span> Revenue Tracking
+                        </h5>
+                        <p className="text-sm text-muted-foreground mb-3">
+                          Track clicks, conversions, and revenue from affiliate links
+                        </p>
+                        <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+                          Coming Soon
+                        </Badge>
+                      </div>
+
+                      <div className="p-4 border rounded-lg bg-card">
+                        <h5 className="font-semibold mb-2 flex items-center gap-2">
+                          <span className="text-xl">📊</span> Analytics Dashboard
+                        </h5>
+                        <p className="text-sm text-muted-foreground mb-3">
+                          View detailed analytics on tutorial performance and earnings
+                        </p>
+                        <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+                          Coming Soon
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Quick Actions */}
+                  <div className="border-t pt-4">
+                    <h4 className="font-medium mb-3">Quick Actions</h4>
+                    <div className="flex flex-wrap gap-2">
+                      <Button variant="outline" size="sm" asChild>
+                        <Link href="/tutorials">
+                          View All Tutorials
+                        </Link>
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => {
+                        window.open('/api/tutorials', '_blank');
+                      }}>
+                        View API Response
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={async () => {
+                        if (confirm('Refresh tutorial statistics?')) {
+                          await fetchData();
+                          alert('Statistics refreshed!');
+                        }
+                      }}>
+                        Refresh Stats
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Tutorial Management Info */}
+                  <div className="p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                    <h4 className="font-semibold mb-2 flex items-center gap-2">
+                      <span>ℹ️</span> Tutorial Management
+                    </h4>
+                    <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+                      <li>Tutorials are created and managed via the database or API</li>
+                      <li>Each tutorial can have multiple affiliate links with discount codes</li>
+                      <li>YouTube videos are automatically embedded with thumbnails</li>
+                      <li>Affiliate disclosure is shown automatically on all tutorials</li>
+                      <li>View count and likes are tracked for each tutorial</li>
+                    </ul>
+                  </div>
+
+                  {/* Affiliate Program Info */}
+                  <div className="p-4 bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800 rounded-lg">
+                    <h4 className="font-semibold mb-2 flex items-center gap-2">
+                      <span>🎯</span> Recommended Affiliate Programs
+                    </h4>
+                    <div className="text-sm text-muted-foreground space-y-2">
+                      <p><strong>Popular AI Tool Affiliate Programs:</strong></p>
+                      <ul className="list-disc list-inside space-y-1 ml-2">
+                        <li>OpenAI / ChatGPT Plus referral program</li>
+                        <li>Jasper AI affiliate program (30% commission)</li>
+                        <li>Copy.ai affiliate program (30% recurring)</li>
+                        <li>Midjourney subscription referrals</li>
+                        <li>Notion AI affiliate program</li>
+                        <li>Grammarly affiliate program</li>
                       </ul>
                     </div>
                   </div>
