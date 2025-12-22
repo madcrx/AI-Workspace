@@ -1,6 +1,14 @@
 import * as cheerio from 'cheerio';
 import { prisma } from './prisma';
 
+// Puppeteer import - optional, will be used if available
+let puppeteer: any = null;
+try {
+  puppeteer = require('puppeteer');
+} catch (error) {
+  console.log('Puppeteer not available - will use basic HTTP fetching only');
+}
+
 interface ScrapedTool {
   name: string;
   websiteUrl: string;
@@ -306,6 +314,84 @@ export class AutoScraper {
   }
 
   /**
+   * Fetch HTML using headless browser (Puppeteer) to handle JavaScript-heavy sites
+   */
+  private async fetchWithBrowser(url: string): Promise<string | null> {
+    if (!puppeteer) {
+      console.log('⚠️ Puppeteer not available, skipping browser rendering');
+      return null;
+    }
+
+    let browser = null;
+    try {
+      console.log('🌐 Launching headless browser for JavaScript rendering...');
+
+      // Determine which browser to use
+      const executablePath = process.env.PUPPETEER_EXECUTABLE_PATH ||
+                            (process.env.CHROME_BIN || undefined);
+
+      const launchOptions: any = {
+        headless: true,
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-accelerated-2d-canvas',
+          '--disable-gpu',
+          '--window-size=1920x1080',
+        ],
+        timeout: 30000,
+      };
+
+      // Use system Chrome if available (Railway/production)
+      if (executablePath) {
+        console.log(`Using Chrome at: ${executablePath}`);
+        launchOptions.executablePath = executablePath;
+      }
+
+      browser = await puppeteer.launch(launchOptions);
+
+      const page = await browser.newPage();
+
+      // Set a realistic user agent
+      await page.setUserAgent(
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+      );
+
+      // Navigate to the page with timeout
+      await page.goto(url, {
+        waitUntil: 'networkidle2',
+        timeout: 30000,
+      });
+
+      // Wait a bit for any lazy-loaded content
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Get the fully rendered HTML
+      const html = await page.content();
+
+      console.log(`✅ Browser rendered ${html.length} characters of HTML`);
+
+      return html;
+    } catch (error) {
+      console.error('❌ Browser rendering failed:', error);
+      this.errors.push(
+        `Browser rendering failed: ${error instanceof Error ? error.message : 'Unknown error'}. ` +
+        `Falling back to basic HTTP fetch.`
+      );
+      return null;
+    } finally {
+      if (browser) {
+        try {
+          await browser.close();
+        } catch (e) {
+          console.error('Error closing browser:', e);
+        }
+      }
+    }
+  }
+
+  /**
    * Scrape a custom URL provided by the user
    */
   async scrapeCustomUrl(url: string): Promise<ScraperResult> {
@@ -317,10 +403,13 @@ export class AutoScraper {
     try {
       console.log(`🔍 Scraping custom URL: ${url}`);
 
-      // Fetch the page
+      let html: string;
+      let usedBrowser = false;
+
+      // First, try a quick fetch to check if site needs browser rendering
       const response = await fetch(url, {
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
           'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
         },
       });
@@ -329,22 +418,42 @@ export class AutoScraper {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
-      const html = await response.text();
-      const $ = cheerio.load(html);
+      const initialHtml = await response.text();
+      const $check = cheerio.load(initialHtml);
 
       // Detect if site is likely JavaScript-heavy
-      const bodyText = $('body').text().trim();
-      const scriptTags = $('script').length;
-      const hasReactRoot = $('#root, #__next, [data-reactroot]').length > 0;
-      const hasVueApp = $('[data-v-]').length > 0 || $('#app').length > 0;
+      const bodyText = $check('body').text().trim();
+      const scriptTags = $check('script').length;
+      const hasReactRoot = $check('#root, #__next, [data-reactroot]').length > 0;
+      const hasVueApp = $check('[data-v-]').length > 0 || $check('#app').length > 0;
+      const isJavaScriptHeavy = bodyText.length < 500 && scriptTags > 10 && (hasReactRoot || hasVueApp);
 
-      if (bodyText.length < 500 && scriptTags > 10 && (hasReactRoot || hasVueApp)) {
-        console.warn(`⚠️ Site appears to use heavy client-side JavaScript (React/Vue/Next.js)`);
+      // Try browser rendering for JavaScript-heavy sites
+      if (isJavaScriptHeavy && puppeteer) {
+        console.log(`🌐 Detected JavaScript-heavy site - using browser rendering`);
+        const browserHtml = await this.fetchWithBrowser(url);
+        if (browserHtml) {
+          html = browserHtml;
+          usedBrowser = true;
+          console.log(`✅ Successfully rendered JavaScript content`);
+        } else {
+          html = initialHtml;
+          this.errors.push(
+            'Site uses JavaScript to load content. Browser rendering failed. ' +
+            'Results may be incomplete. Try a different URL from this site or a different source.'
+          );
+        }
+      } else if (isJavaScriptHeavy && !puppeteer) {
+        html = initialHtml;
         this.errors.push(
-          'This site appears to load content dynamically with JavaScript. The scraper can only access static HTML content. ' +
-          'Some or all tools may not be visible. Consider using tools from this site sparingly or manually.'
+          'This site loads content with JavaScript but browser rendering is not available. ' +
+          'Results may be incomplete or empty. Install Chrome/Chromium for full JavaScript support.'
         );
+      } else {
+        html = initialHtml;
       }
+
+      const $ = cheerio.load(html);
 
       // Try site-specific scraping strategies first
       const siteSpecificTools = await this.trySiteSpecificScraping(url, $);
