@@ -55,8 +55,36 @@ export default function WorkspacePage() {
       fetchWorkspaces();
       fetchCategories();
       fetchCredentials();
+      loadZoomLevel();
     }
   }, [status, router]);
+
+  const loadZoomLevel = async () => {
+    try {
+      const response = await fetch('/api/user/preferences');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.workspaceZoom) {
+          setWorkspaceZoom(data.workspaceZoom);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading zoom level:', error);
+    }
+  };
+
+  const saveZoomLevel = async (zoom: number) => {
+    setWorkspaceZoom(zoom);
+    try {
+      await fetch('/api/user/preferences', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ workspaceZoom: zoom }),
+      });
+    } catch (error) {
+      console.error('Error saving zoom level:', error);
+    }
+  };
 
   const fetchCredentials = async () => {
     try {
@@ -385,13 +413,7 @@ export default function WorkspacePage() {
       </header>
 
       <div className="flex justify-center">
-        <main
-          className={`w-full max-w-7xl px-4 py-8 pl-[calc(20rem+1rem)] transition-all duration-300 ${sidebarOpen ? 'pr-[calc(12.5%+1rem)]' : ''}`}
-          style={{
-            transform: `scale(${workspaceZoom / 100})`,
-            transformOrigin: 'top center'
-          }}
-        >
+        <main className={`w-full max-w-7xl px-4 py-8 pl-[calc(20rem+1rem)] transition-all duration-300 ${sidebarOpen ? 'pr-[calc(12.5%+1rem)]' : ''}`}>
           <div className="mb-6 flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold mb-2">
@@ -442,12 +464,19 @@ export default function WorkspacePage() {
 
           {currentWorkspace ? (
             filteredTools.length > 0 ? (
-              <WorkspaceGrid
-                tools={filteredTools}
-                onRemoveTool={handleRemoveTool}
-                onUpdateLayout={handleUpdateLayout}
-                userCredentials={userCredentials}
-              />
+              <div
+                style={{
+                  transform: `scale(${workspaceZoom / 100})`,
+                  transformOrigin: 'top left'
+                }}
+              >
+                <WorkspaceGrid
+                  tools={filteredTools}
+                  onRemoveTool={handleRemoveTool}
+                  onUpdateLayout={handleUpdateLayout}
+                  userCredentials={userCredentials}
+                />
+              </div>
             ) : (
               <div className="text-center py-12">
                 <p className="text-muted-foreground">
@@ -504,7 +533,7 @@ export default function WorkspacePage() {
         selectorOpen={widgetSidebarOpen}
         onSelectorToggle={() => setWidgetSidebarOpen(!widgetSidebarOpen)}
         workspaceZoom={workspaceZoom}
-        onZoomChange={setWorkspaceZoom}
+        onZoomChange={saveZoomLevel}
         currentTheme={currentWorkspace?.theme || 'default'}
         onThemeChange={handleThemeSelection}
       />

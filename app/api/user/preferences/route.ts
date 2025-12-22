@@ -25,6 +25,7 @@ export async function GET(request: NextRequest) {
           theme: 'default',
           notes: '',
           todos: '[]',
+          workspaceZoom: 100,
         },
       });
     }
@@ -34,6 +35,7 @@ export async function GET(request: NextRequest) {
       theme: preferences.theme,
       notes: preferences.notes || '',
       todos: JSON.parse(preferences.todos),
+      workspaceZoom: preferences.workspaceZoom || 100,
     });
   } catch (error) {
     console.error('Error fetching user preferences:', error);
@@ -54,7 +56,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { widgets, theme, notes, todos } = body;
+    const { widgets, theme, notes, todos, workspaceZoom } = body;
 
     const updateData: any = {};
     if (widgets !== undefined) {
@@ -69,6 +71,9 @@ export async function PUT(request: NextRequest) {
     if (todos !== undefined) {
       updateData.todos = JSON.stringify(todos);
     }
+    if (workspaceZoom !== undefined) {
+      updateData.workspaceZoom = workspaceZoom;
+    }
 
     const preferences = await prisma.userPreferences.upsert({
       where: { userId: session.user.id },
@@ -79,6 +84,7 @@ export async function PUT(request: NextRequest) {
         theme: theme || 'default',
         notes: notes || '',
         todos: todos ? JSON.stringify(todos) : '[]',
+        workspaceZoom: workspaceZoom || 100,
       },
     });
 
@@ -87,6 +93,7 @@ export async function PUT(request: NextRequest) {
       theme: preferences.theme,
       notes: preferences.notes || '',
       todos: JSON.parse(preferences.todos),
+      workspaceZoom: preferences.workspaceZoom || 100,
     });
   } catch (error) {
     console.error('Error updating user preferences:', error);
