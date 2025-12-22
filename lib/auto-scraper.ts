@@ -332,81 +332,207 @@ export class AutoScraper {
       const html = await response.text();
       const $ = cheerio.load(html);
 
-      // Try multiple extraction strategies
+      // PRIORITY STRATEGY: Look for numbered lists and directories first
 
-      // Strategy 1: Look for common AI tool listing patterns
-      const toolElements = $('[class*="tool"], [class*="card"], [class*="item"], article, .product, .app').slice(0, 20);
-
-      toolElements.each((i, elem) => {
-        try {
-          const $elem = $(elem);
-
-          // Extract name
-          const name =
-            $elem.find('h1, h2, h3, [class*="title"], [class*="name"]').first().text().trim() ||
-            $elem.find('a').first().text().trim();
-
-          if (!name || name.length < 3) return;
-
-          // Extract description
-          const description =
-            $elem.find('p, [class*="description"], [class*="desc"]').first().text().trim() ||
-            $elem.text().substring(0, 200).trim();
-
-          // Extract URL
-          let websiteUrl = $elem.find('a[href]').first().attr('href') || '';
-          if (websiteUrl && !websiteUrl.startsWith('http')) {
-            const baseUrl = new URL(url);
-            websiteUrl = `${baseUrl.protocol}//${baseUrl.host}${websiteUrl.startsWith('/') ? '' : '/'}${websiteUrl}`;
+      // Strategy 1: Look for ordered lists (ol > li)
+      const orderedLists = $('ol li').slice(0, 50);
+      if (orderedLists.length > 0) {
+        console.log(`📋 Found ${orderedLists.length} items in ordered lists`);
+        orderedLists.each((i, elem) => {
+          try {
+            const $elem = $(elem);
+            const extracted = this.extractToolFromElement($elem, url);
+            if (extracted) tools.push(extracted);
+          } catch (error) {
+            // Skip individual tool extraction errors
           }
+        });
+      }
 
-          // Extract logo/image
-          const logoUrl = $elem.find('img').first().attr('src') || undefined;
+      // Strategy 2: Look for numbered directory items (text starting with numbers like "1.", "2.", etc.)
+      if (tools.length < 5) {
+        const numberedItems = $('li, div, article').filter((i, elem) => {
+          const text = $(elem).text().trim();
+          // Match patterns like "1.", "2)", "1 -", "01.", etc.
+          return /^\s*\d+[\.\)\-\s]/.test(text);
+        }).slice(0, 50);
 
-          if (name && description && description.length > 20) {
-            tools.push({
-              name: name.substring(0, 100),
-              websiteUrl: websiteUrl || url,
-              description: description.substring(0, 500),
-              category: this.categorizeFromDescription(description),
-              pricing: this.detectPricing($elem.text()),
-              logoUrl,
-            });
-          }
-        } catch (error) {
-          // Skip individual tool extraction errors
-        }
-      });
-
-      // Strategy 2: If no tools found, try to extract from the page itself
-      if (tools.length === 0) {
-        const pageTitle = $('title').text() || $('h1').first().text() || 'Scraped Tool';
-        const pageDescription =
-          $('meta[name="description"]').attr('content') ||
-          $('meta[property="og:description"]').attr('content') ||
-          $('p').first().text() ||
-          'Tool scraped from custom URL';
-
-        if (pageTitle && pageDescription && pageDescription.length > 20) {
-          tools.push({
-            name: pageTitle.substring(0, 100),
-            websiteUrl: url,
-            description: pageDescription.substring(0, 500),
-            category: this.categorizeFromDescription(pageDescription),
-            pricing: this.detectPricing($('body').text()),
+        if (numberedItems.length > 0) {
+          console.log(`🔢 Found ${numberedItems.length} numbered items`);
+          numberedItems.each((i, elem) => {
+            try {
+              const $elem = $(elem);
+              const extracted = this.extractToolFromElement($elem, url);
+              if (extracted) tools.push(extracted);
+            } catch (error) {
+              // Skip individual tool extraction errors
+            }
           });
         }
       }
 
-      if (tools.length === 0) {
-        this.errors.push('No tools found on this page. The page structure might not be compatible with auto-scraping.');
+      // Strategy 3: Look for directory-style listings (list items within unordered lists)
+      if (tools.length < 5) {
+        const directoryLists = $('ul li').filter((i, elem) => {
+          const $elem = $(elem);
+          // Directory items usually have links and descriptions
+          const hasLink = $elem.find('a[href]').length > 0;
+          const hasText = $elem.text().trim().length > 20;
+          return hasLink && hasText;
+        }).slice(0, 50);
+
+        if (directoryLists.length > 0) {
+          console.log(`📁 Found ${directoryLists.length} directory-style items`);
+          directoryLists.each((i, elem) => {
+            try {
+              const $elem = $(elem);
+              const extracted = this.extractToolFromElement($elem, url);
+              if (extracted) tools.push(extracted);
+            } catch (error) {
+              // Skip individual tool extraction errors
+            }
+          });
+        }
       }
 
+      // Strategy 4: Look for table rows (many directories use tables)
+      if (tools.length < 5) {
+        const tableRows = $('table tr').filter((i, elem) => {
+          const $elem = $(elem);
+          // Skip header rows
+          if ($elem.find('th').length > 0) return false;
+          // Must have at least 2 cells and a link
+          return $elem.find('td').length >= 2 && $elem.find('a[href]').length > 0;
+        }).slice(0, 50);
+
+        if (tableRows.length > 0) {
+          console.log(`📊 Found ${tableRows.length} table rows`);
+          tableRows.each((i, elem) => {
+            try {
+              const $elem = $(elem);
+              const extracted = this.extractToolFromTableRow($elem, url);
+              if (extracted) tools.push(extracted);
+            } catch (error) {
+              // Skip individual tool extraction errors
+            }
+          });
+        }
+      }
+
+      // Strategy 5: Only as last resort, look for generic tool cards
+      if (tools.length < 3) {
+        const toolElements = $('[class*="tool-card"], [class*="app-card"], [class*="product-item"]').slice(0, 20);
+
+        if (toolElements.length > 0) {
+          console.log(`🃏 Found ${toolElements.length} generic card items`);
+          toolElements.each((i, elem) => {
+            try {
+              const $elem = $(elem);
+              const extracted = this.extractToolFromElement($elem, url);
+              if (extracted) tools.push(extracted);
+            } catch (error) {
+              // Skip individual tool extraction errors
+            }
+          });
+        }
+      }
+
+      // Remove duplicates based on name
+      const uniqueTools = tools.filter((tool, index, self) =>
+        index === self.findIndex((t) => t.name.toLowerCase() === tool.name.toLowerCase())
+      );
+
+      console.log(`✅ Extracted ${uniqueTools.length} unique tools from ${url}`);
+
+      if (uniqueTools.length === 0) {
+        this.errors.push('No tools found in numbered lists or directory format. The page might not be a tool directory or list.');
+      }
+
+      return await this.processScrapedTools(uniqueTools, `Custom URL: ${url}`);
     } catch (error) {
       this.errors.push(`Custom URL scraping failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      return await this.processScrapedTools(tools, `Custom URL: ${url}`);
+    }
+  }
+
+  /**
+   * Extract tool information from a generic element (list item, div, etc.)
+   */
+  private extractToolFromElement($elem: cheerio.Cheerio, baseUrl: string): ScrapedTool | null {
+    // Extract name
+    const name =
+      $elem.find('h1, h2, h3, h4, [class*="title"], [class*="name"], strong, b').first().text().trim() ||
+      $elem.find('a').first().text().trim();
+
+    if (!name || name.length < 3 || name.length > 150) return null;
+
+    // Extract description
+    const description =
+      $elem.find('p, [class*="description"], [class*="desc"], [class*="summary"]').first().text().trim() ||
+      $elem.clone().children('h1, h2, h3, h4, strong, b, a').remove().end().text().trim();
+
+    if (!description || description.length < 20) return null;
+
+    // Extract URL
+    let websiteUrl = $elem.find('a[href]').first().attr('href') || '';
+    if (websiteUrl && !websiteUrl.startsWith('http')) {
+      try {
+        const base = new URL(baseUrl);
+        websiteUrl = new URL(websiteUrl, base.origin).href;
+      } catch {
+        websiteUrl = baseUrl;
+      }
     }
 
-    return await this.processScrapedTools(tools, `Custom URL: ${url}`);
+    // Extract logo/image
+    const logoUrl = $elem.find('img').first().attr('src') || undefined;
+
+    return {
+      name: name.substring(0, 100).replace(/^\d+[\.\)\-\s]+/, '').trim(), // Remove number prefix
+      websiteUrl: websiteUrl || baseUrl,
+      description: description.substring(0, 500),
+      category: this.categorizeFromDescription(description),
+      pricing: this.detectPricing($elem.text()),
+      logoUrl,
+    };
+  }
+
+  /**
+   * Extract tool information from a table row
+   */
+  private extractToolFromTableRow($row: cheerio.Cheerio, baseUrl: string): ScrapedTool | null {
+    const cells = $row.find('td');
+    if (cells.length < 2) return null;
+
+    // First cell usually contains name/link
+    const $firstCell = cells.eq(0);
+    const name = $firstCell.find('a').text().trim() || $firstCell.text().trim();
+
+    if (!name || name.length < 3) return null;
+
+    // Second cell usually contains description
+    const description = cells.eq(1).text().trim();
+
+    if (!description || description.length < 20) return null;
+
+    // Extract URL
+    let websiteUrl = $firstCell.find('a[href]').first().attr('href') || $row.find('a[href]').first().attr('href') || '';
+    if (websiteUrl && !websiteUrl.startsWith('http')) {
+      try {
+        const base = new URL(baseUrl);
+        websiteUrl = new URL(websiteUrl, base.origin).href;
+      } catch {
+        websiteUrl = baseUrl;
+      }
+    }
+
+    return {
+      name: name.substring(0, 100),
+      websiteUrl: websiteUrl || baseUrl,
+      description: description.substring(0, 500),
+      category: this.categorizeFromDescription(description),
+      pricing: this.detectPricing($row.text()),
+    };
   }
 
   /**
