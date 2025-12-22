@@ -70,6 +70,8 @@ export default function AdminPage() {
   const [customUrl, setCustomUrl] = useState('');
   const [fixingWorkspaces, setFixingWorkspaces] = useState(false);
   const [workspaceFixResult, setWorkspaceFixResult] = useState<any>(null);
+  const [seedingTutorials, setSeedingTutorials] = useState(false);
+  const [tutorialSeedResult, setTutorialSeedResult] = useState<any>(null);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -345,6 +347,27 @@ export default function AdminPage() {
       setWorkspaceFixResult({ error: 'Failed to fix workspaces' });
     } finally {
       setFixingWorkspaces(false);
+    }
+  };
+
+  const seedTutorials = async () => {
+    if (!confirm('This will add 8 tutorial videos to the database. Continue?')) {
+      return;
+    }
+
+    setSeedingTutorials(true);
+    setTutorialSeedResult(null);
+    try {
+      const response = await fetch('/api/admin/seed-tutorials', {
+        method: 'POST',
+      });
+      const data = await response.json();
+      setTutorialSeedResult(data);
+    } catch (error) {
+      console.error('Error seeding tutorials:', error);
+      setTutorialSeedResult({ error: 'Failed to seed tutorials' });
+    } finally {
+      setSeedingTutorials(false);
     }
   };
 
@@ -926,6 +949,31 @@ export default function AdminPage() {
                             : 'bg-green-50 dark:bg-green-950 text-green-600 dark:text-green-400'
                         }`}>
                           {workspaceFixResult.error || workspaceFixResult.message}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="p-4 border rounded-lg">
+                      <Label className="text-sm font-medium">Seed Tutorials</Label>
+                      <p className="text-sm text-muted-foreground mb-3">
+                        Add 8 tutorial videos with YouTube embeds to the database. Includes ChatGPT, Midjourney, GitHub Copilot, and more.
+                      </p>
+                      <Button
+                        onClick={seedTutorials}
+                        disabled={seedingTutorials}
+                        variant="outline"
+                        size="sm"
+                      >
+                        {seedingTutorials ? 'Seeding...' : 'Seed Tutorials'}
+                      </Button>
+
+                      {tutorialSeedResult && (
+                        <div className={`mt-3 p-3 rounded ${
+                          tutorialSeedResult.error || !tutorialSeedResult.success
+                            ? 'bg-red-50 dark:bg-red-950 text-red-600 dark:text-red-400'
+                            : 'bg-green-50 dark:bg-green-950 text-green-600 dark:text-green-400'
+                        }`}>
+                          {tutorialSeedResult.error || tutorialSeedResult.message}
                         </div>
                       )}
                     </div>
