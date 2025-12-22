@@ -464,19 +464,12 @@ export default function WorkspacePage() {
 
           {currentWorkspace ? (
             filteredTools.length > 0 ? (
-              <div
-                style={{
-                  transform: `scale(${workspaceZoom / 100})`,
-                  transformOrigin: 'top left'
-                }}
-              >
-                <WorkspaceGrid
-                  tools={filteredTools}
-                  onRemoveTool={handleRemoveTool}
-                  onUpdateLayout={handleUpdateLayout}
-                  userCredentials={userCredentials}
-                />
-              </div>
+              <WorkspaceGrid
+                tools={filteredTools}
+                onRemoveTool={handleRemoveTool}
+                onUpdateLayout={handleUpdateLayout}
+                userCredentials={userCredentials}
+              />
             ) : (
               <div className="text-center py-12">
                 <p className="text-muted-foreground">
@@ -532,8 +525,6 @@ export default function WorkspacePage() {
       <SimplifiedWidgetSidebar
         selectorOpen={widgetSidebarOpen}
         onSelectorToggle={() => setWidgetSidebarOpen(!widgetSidebarOpen)}
-        workspaceZoom={workspaceZoom}
-        onZoomChange={saveZoomLevel}
         currentTheme={currentWorkspace?.theme || 'default'}
         onThemeChange={handleThemeSelection}
       />
