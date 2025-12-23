@@ -512,6 +512,88 @@ model MonetizationSettings {
   enableAnalytics       Boolean  @default(true)
   enableEmailNotifications Boolean @default(true)
 
+  // Apache Web Hosting Configuration
+  // Server Settings
+  apacheServerName      String?  // Primary domain (e.g., example.com)
+  apacheServerAlias     String?  // Additional domains (space-separated)
+  apacheServerAdmin     String?  // Admin email
+  apacheDocumentRoot    String?  // Document root path
+  apacheHttpPort        Int?     @default(80)
+  apacheHttpsPort       Int?     @default(443)
+
+  // SSL/TLS Configuration
+  apacheSslEnabled      Boolean  @default(false)
+  apacheSslCertPath     String?  // SSL certificate file path
+  apacheSslKeyPath      String?  // SSL certificate key path
+  apacheSslChainPath    String?  // SSL certificate chain path
+  apacheSslProtocol     String?  @default("all -SSLv2 -SSLv3 -TLSv1 -TLSv1.1")
+  apacheSslCipherSuite  String?  @default("HIGH:!aNULL:!MD5:!3DES")
+
+  // Apache Modules
+  apacheModRewrite      Boolean  @default(true)
+  apacheModSsl          Boolean  @default(true)
+  apacheModHeaders      Boolean  @default(true)
+  apacheModExpires      Boolean  @default(true)
+  apacheModDeflate      Boolean  @default(true)
+  apacheModSecurity     Boolean  @default(false)
+
+  // Directory Configuration
+  apacheAllowOverride   String?  @default("All") // None, All, FileInfo, etc.
+  apacheOptions         String?  @default("FollowSymLinks") // Indexes, FollowSymLinks, etc.
+  apacheDirectoryIndex  String?  @default("index.html index.php") // Default index files
+  apacheRequire         String?  @default("all granted") // Access control
+
+  // PHP Configuration
+  apachePhpVersion      String?  @default("8.2") // PHP version
+  apachePhpMemoryLimit  String?  @default("256M")
+  apachePhpMaxExecutionTime Int? @default(300) // seconds
+  apachePhpMaxInputTime     Int? @default(300) // seconds
+  apachePhpUploadMaxFilesize String? @default("64M")
+  apachePhpPostMaxSize      String? @default("64M")
+  apachePhpDisplayErrors    Boolean @default(false)
+  apachePhpLogErrors        Boolean @default(true)
+
+  // Logging Configuration
+  apacheErrorLogPath    String?  @default("/var/log/apache2/error.log")
+  apacheAccessLogPath   String?  @default("/var/log/apache2/access.log")
+  apacheLogLevel        String?  @default("warn") // emerg, alert, crit, error, warn, notice, info, debug
+  apacheLogFormat       String?  @default("combined") // combined, common, custom
+
+  // Security Settings
+  apacheServerTokens    String?  @default("Prod") // Full, OS, Minimal, Minor, Major, Prod
+  apacheServerSignature String?  @default("Off") // On, Off, EMail
+  apacheTraceEnable     String?  @default("Off") // On, Off, extended
+  apacheHtaccessEnabled Boolean  @default(true)
+  apacheDirectoryListing Boolean @default(false)
+
+  // Performance Tuning
+  apacheKeepAlive       Boolean  @default(true)
+  apacheMaxKeepAliveRequests Int? @default(100)
+  apacheKeepAliveTimeout    Int? @default(5) // seconds
+  apacheTimeout         Int?     @default(300) // seconds
+  apacheMaxClients      Int?     @default(150)
+  apacheMaxRequestsPerChild Int? @default(0) // 0 = unlimited
+
+  // Compression Settings
+  apacheCompressionEnabled Boolean @default(true)
+  apacheCompressionTypes String? @default("text/html text/plain text/xml text/css text/javascript application/javascript application/json application/xml")
+
+  // Cache Control
+  apacheCacheControl    String? @default("public, max-age=31536000") // Cache-Control header
+  apacheEtagEnabled     Boolean @default(true)
+  apacheExpiresActive   Boolean @default(true)
+  apacheExpiresDefault  String? @default("access plus 1 year")
+
+  // Virtual Host Configuration
+  apacheVirtualHostConfig String? // Custom VirtualHost configuration
+  apacheHtaccessRules   String?   // Custom .htaccess rules
+  apacheCustomConfig    String?   // Additional custom Apache directives
+
+  // Rewrite Rules
+  apacheRewriteEngine   Boolean @default(true)
+  apacheRewriteBase     String? @default("/")
+  apacheRewriteRules    String? // Custom rewrite rules (JSON array)
+
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 }

@@ -17,6 +17,7 @@ import RevenueAnalytics from '@/components/admin/revenue-analytics';
 import BackendSettings from '@/components/admin/backend-settings';
 import DatabaseTools from '@/components/admin/database-tools';
 import DeveloperTools from '@/components/admin/developer-tools';
+import WebHostingSettings from '@/components/admin/webhosting-settings';
 
 interface Stats {
   totalUsers: number;
@@ -535,6 +536,7 @@ export default function AdminPage() {
             <TabsTrigger value="database">Database</TabsTrigger>
             <TabsTrigger value="developer">Developer</TabsTrigger>
             <TabsTrigger value="settings">Backend Settings</TabsTrigger>
+            <TabsTrigger value="webhosting">Web Hosting</TabsTrigger>
             <TabsTrigger value="webtools">Web Tools</TabsTrigger>
           </TabsList>
 
@@ -1562,6 +1564,10 @@ export default function AdminPage() {
 
           <TabsContent value="developer">
             <DeveloperTools />
+          </TabsContent>
+
+          <TabsContent value="webhosting">
+            <WebHostingSettings />
           </TabsContent>
 
           <TabsContent value="webtools">
