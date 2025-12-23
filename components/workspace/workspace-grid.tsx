@@ -111,7 +111,7 @@ export function WorkspaceGrid({ tools, onRemoveTool, onUpdateLayout, userCredent
   }
 
   return (
-    <div className="grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+    <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
       {tools
         .sort((a, b) => a.position - b.position)
         .map((workspaceTool) => (
@@ -123,12 +123,12 @@ export function WorkspaceGrid({ tools, onRemoveTool, onUpdateLayout, userCredent
             onDrop={(e) => handleDrop(e, workspaceTool.toolId)}
             className="cursor-move hover:shadow-lg transition-shadow"
           >
-            <CardHeader className="pb-2 p-3">
+            <CardHeader className="pb-3 p-4">
               <div className="flex items-start justify-between gap-2 mb-2">
-                <div className="flex items-center gap-1 flex-1 min-w-0">
-                  <GripVertical className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                   {workspaceTool.tool.logoUrl && (
-                    <div className="h-6 w-6 rounded overflow-hidden flex-shrink-0">
+                    <div className="h-8 w-8 rounded overflow-hidden flex-shrink-0">
                       <img
                         src={workspaceTool.tool.logoUrl}
                         alt={`${workspaceTool.tool.name} logo`}
@@ -138,28 +138,28 @@ export function WorkspaceGrid({ tools, onRemoveTool, onUpdateLayout, userCredent
                   )}
                 </div>
                 <div className="flex items-center gap-1">
-                  <Badge className={`text-xs py-0 px-1.5 ${getPricingBadgeColor(workspaceTool.tool.pricing)}`}>
+                  <Badge className={`text-sm py-0.5 px-2 ${getPricingBadgeColor(workspaceTool.tool.pricing)}`}>
                     {workspaceTool.tool.pricing}
                   </Badge>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-5 w-5 flex-shrink-0"
+                    className="h-6 w-6 flex-shrink-0"
                     onClick={() => onRemoveTool(workspaceTool.toolId)}
                   >
-                    <X className="h-3 w-3" />
+                    <X className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
               <div className="min-w-0">
-                <CardTitle className="text-sm truncate">{workspaceTool.tool.name}</CardTitle>
-                <CardDescription className="text-xs mt-0.5 truncate">
+                <CardTitle className="text-base truncate">{workspaceTool.tool.name}</CardTitle>
+                <CardDescription className="text-sm mt-1 truncate">
                   {workspaceTool.tool.category}
                 </CardDescription>
               </div>
             </CardHeader>
-            <CardContent className="space-y-2 p-3 pt-0">
-              <div className="text-xs text-muted-foreground">
+            <CardContent className="space-y-2 p-4 pt-0">
+              <div className="text-sm text-muted-foreground">
                 <p className={expandedTools.has(workspaceTool.toolId) ? '' : 'line-clamp-2'}>
                   {workspaceTool.tool.longDescription || workspaceTool.tool.description}
                 </p>
@@ -169,15 +169,15 @@ export function WorkspaceGrid({ tools, onRemoveTool, onUpdateLayout, userCredent
                       e.stopPropagation();
                       toggleExpanded(workspaceTool.toolId);
                     }}
-                    className="text-primary hover:underline mt-1"
+                    className="text-primary hover:underline mt-1 text-sm"
                   >
                     {expandedTools.has(workspaceTool.toolId) ? 'Show less' : 'Show more'}
                   </button>
                 )}
                 {expandedTools.has(workspaceTool.toolId) && workspaceTool.tool.features && (
                   <div className="mt-2 pt-2 border-t">
-                    <p className="font-medium mb-1">Features:</p>
-                    <div className="text-xs space-y-1">
+                    <p className="font-medium mb-1 text-sm">Features:</p>
+                    <div className="text-sm space-y-1">
                       {JSON.parse(workspaceTool.tool.features).map((feature: string, idx: number) => (
                         <div key={idx} className="flex items-start gap-1">
                           <span>•</span>
@@ -202,8 +202,8 @@ export function WorkspaceGrid({ tools, onRemoveTool, onUpdateLayout, userCredent
                       }
                     }}
                   >
-                    <Button size="sm" className="w-full gap-1 h-7 text-xs" variant="default">
-                      <Key className="h-3 w-3" />
+                    <Button size="sm" className="w-full gap-1 h-9 text-sm" variant="default">
+                      <Key className="h-4 w-4" />
                       Login
                     </Button>
                   </a>
@@ -213,8 +213,8 @@ export function WorkspaceGrid({ tools, onRemoveTool, onUpdateLayout, userCredent
                     rel="noopener noreferrer"
                     className="flex-1"
                   >
-                    <Button size="sm" className="w-full gap-1 h-7 text-xs" variant="outline">
-                      <ExternalLink className="h-3 w-3" />
+                    <Button size="sm" className="w-full gap-1 h-9 text-sm" variant="outline">
+                      <ExternalLink className="h-4 w-4" />
                       Visit
                     </Button>
                   </a>
@@ -225,8 +225,8 @@ export function WorkspaceGrid({ tools, onRemoveTool, onUpdateLayout, userCredent
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  <Button size="sm" className="w-full gap-1 h-7 text-xs">
-                    <ExternalLink className="h-3 w-3" />
+                  <Button size="sm" className="w-full gap-1 h-9 text-sm">
+                    <ExternalLink className="h-4 w-4" />
                     Open Tool
                   </Button>
                 </a>

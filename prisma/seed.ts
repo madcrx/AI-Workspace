@@ -1981,7 +1981,7 @@ async function main() {
       content: '# ChatGPT Complete Guide\n\nLearn everything you need to know about ChatGPT...',
       category: 'Getting Started',
       difficulty: 'BEGINNER',
-      youtubeVideoId: 'JTxsNm9IdYU',
+      youtubeVideoId: 'g5oEAoKdrdw',
       affiliateLinks: JSON.stringify([
         { name: 'ChatGPT Plus Subscription', url: 'https://chat.openai.com/auth/login?next=/c/new' },
       ]),
@@ -2000,7 +2000,7 @@ async function main() {
       content: '# Midjourney AI Art Tutorial\n\nDiscover how to create stunning images with Midjourney...',
       category: 'Image Generation',
       difficulty: 'INTERMEDIATE',
-      youtubeVideoId: 'cXJJ891uwVo',
+      youtubeVideoId: '9WVZbitXbck',
       affiliateLinks: JSON.stringify([
         { name: 'Midjourney Subscription', url: 'https://www.midjourney.com/account/' },
       ]),
@@ -2019,7 +2019,7 @@ async function main() {
       content: '# GitHub Copilot Guide\n\nTransform your coding workflow with AI assistance...',
       category: 'Code Assistant',
       difficulty: 'INTERMEDIATE',
-      youtubeVideoId: '0rbRvNe98TI',
+      youtubeVideoId: 'q6i9uxrWXoQ',
       affiliateLinks: JSON.stringify([
         { name: 'GitHub Copilot', url: 'https://github.com/features/copilot' },
       ]),
@@ -2038,7 +2038,7 @@ async function main() {
       content: '# DALL-E 3 Tutorial\n\nGenerate incredible images using DALL-E 3...',
       category: 'Image Generation',
       difficulty: 'BEGINNER',
-      youtubeVideoId: 'SyqOVBDkHsM',
+      youtubeVideoId: 'nvAkJA1Ijc',
       affiliateLinks: JSON.stringify([
         { name: 'ChatGPT Plus (DALL-E 3 Access)', url: 'https://chat.openai.com/auth/login' },
       ]),
@@ -2057,7 +2057,7 @@ async function main() {
       content: '# Claude AI Tutorial\n\nExplore Claude AI capabilities...',
       category: 'Getting Started',
       difficulty: 'BEGINNER',
-      youtubeVideoId: '_-qAL7vRVMs',
+      youtubeVideoId: 'g5oEAoKdrdw',
       affiliateLinks: JSON.stringify([
         { name: 'Claude Pro Subscription', url: 'https://claude.ai/' },
       ]),
@@ -2076,7 +2076,7 @@ async function main() {
       content: '# Jasper AI Content Writing\n\nLearn to create compelling content with Jasper...',
       category: 'Content Writing',
       difficulty: 'INTERMEDIATE',
-      youtubeVideoId: 'mT2PcrKQ9Ao',
+      youtubeVideoId: 'g5oEAoKdrdw',
       affiliateLinks: JSON.stringify([
         { name: 'Jasper AI Trial', url: 'https://www.jasper.ai/' },
       ]),
@@ -2095,7 +2095,7 @@ async function main() {
       content: '# Runway ML Tutorial\n\nRevolutionize video editing with AI tools...',
       category: 'Productivity',
       difficulty: 'ADVANCED',
-      youtubeVideoId: 'aLdlcWoWw9U',
+      youtubeVideoId: '9WVZbitXbck',
       affiliateLinks: JSON.stringify([
         { name: 'Runway ML Subscription', url: 'https://runwayml.com/' },
       ]),
@@ -2114,7 +2114,7 @@ async function main() {
       content: '# ElevenLabs Voice AI\n\nGenerate professional voice overs with AI...',
       category: 'Productivity',
       difficulty: 'BEGINNER',
-      youtubeVideoId: 'b_VgVStTVPE',
+      youtubeVideoId: 'q6i9uxrWXoQ',
       affiliateLinks: JSON.stringify([
         { name: 'ElevenLabs Subscription', url: 'https://elevenlabs.io/' },
       ]),
