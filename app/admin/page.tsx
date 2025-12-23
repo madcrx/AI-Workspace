@@ -14,6 +14,7 @@ import { signOut } from 'next-auth/react';
 import Link from 'next/link';
 import MonetizationSettings from '@/components/admin/monetization-settings';
 import RevenueAnalytics from '@/components/admin/revenue-analytics';
+import BackendSettings from '@/components/admin/backend-settings';
 
 interface Stats {
   totalUsers: number;
@@ -1228,6 +1229,11 @@ export default function AdminPage() {
                 {/* Monetization Backend Settings */}
                 <div className="border-t pt-6">
                   <MonetizationSettings />
+                </div>
+
+                {/* Backend Configuration Settings */}
+                <div className="border-t pt-6">
+                  <BackendSettings />
                 </div>
 
                 {/* Video Clips Management */}

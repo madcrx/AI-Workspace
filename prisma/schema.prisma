@@ -401,6 +401,117 @@ model MonetizationSettings {
   alertOnLargeConversion Boolean @default(true)
   largeConversionThreshold Float? @default(100)
 
+  // Email/SMTP Configuration
+  smtpHost              String?
+  smtpPort              Int?     @default(587)
+  smtpUsername          String?
+  smtpPassword          String?
+  smtpFromEmail         String?
+  smtpFromName          String?
+  smtpSecure            Boolean  @default(true) // Use TLS
+  smtpEnabled           Boolean  @default(false)
+
+  // OAuth Provider Credentials - Google
+  googleClientId        String?
+  googleClientSecret    String?
+  googleRedirectUri     String?
+  googleEnabled         Boolean  @default(false)
+
+  // OAuth Provider Credentials - GitHub
+  githubClientId        String?
+  githubClientSecret    String?
+  githubRedirectUri     String?
+  githubEnabled         Boolean  @default(false)
+
+  // OAuth Provider Credentials - Discord
+  discordClientId       String?
+  discordClientSecret   String?
+  discordRedirectUri    String?
+  discordEnabled        Boolean  @default(false)
+
+  // OAuth Provider Credentials - Microsoft
+  microsoftClientId     String?
+  microsoftClientSecret String?
+  microsoftRedirectUri  String?
+  microsoftEnabled      Boolean  @default(false)
+
+  // API Keys - AI Services
+  openaiApiKey          String?
+  anthropicApiKey       String?
+  googleAiApiKey        String?
+  cohereApiKey          String?
+  huggingfaceApiKey     String?
+
+  // API Keys - Analytics & Tracking
+  googleAnalyticsId     String?
+  mixpanelToken         String?
+  segmentWriteKey       String?
+  hotjarSiteId          String?
+  clarityProjectId      String?
+
+  // API Keys - Payment & Commerce
+  stripePublicKey       String?
+  stripeSecretKey       String?
+  stripeWebhookSecret   String?
+  paypalClientId        String?
+  paypalClientSecret    String?
+  paypalMode            String?  @default("sandbox") // sandbox or live
+
+  // API Keys - Cloud Storage
+  awsAccessKeyId        String?
+  awsSecretAccessKey    String?
+  awsRegion             String?
+  awsS3Bucket           String?
+  cloudinaryCloudName   String?
+  cloudinaryApiKey      String?
+  cloudinaryApiSecret   String?
+
+  // API Keys - Communication
+  twilioAccountSid      String?
+  twilioAuthToken       String?
+  twilioPhoneNumber     String?
+  sendgridApiKey        String?
+  mailgunApiKey         String?
+  mailgunDomain         String?
+
+  // API Keys - Social Media
+  twitterApiKey         String?
+  twitterApiSecret      String?
+  twitterBearerToken    String?
+  facebookAppId         String?
+  facebookAppSecret     String?
+  linkedinClientId      String?
+  linkedinClientSecret  String?
+
+  // API Keys - Search & SEO
+  googleSearchApiKey    String?
+  googleSearchEngineId  String?
+  serpApiKey            String?
+  semrushApiKey         String?
+
+  // Database Configuration
+  databaseUrl           String?
+  redisUrl              String?
+  mongodbUrl            String?
+
+  // Application URLs
+  appUrl                String?
+  apiUrl                String?
+  cdnUrl                String?
+
+  // Security Settings
+  jwtSecret             String?
+  encryptionKey         String?
+  apiRateLimit          Int?     @default(100)
+  corsOrigins           String?  // JSON array of allowed origins
+
+  // Feature Flags
+  enableAiChat          Boolean  @default(false)
+  enableSocialLogin     Boolean  @default(false)
+  enablePayments        Boolean  @default(false)
+  enableAnalytics       Boolean  @default(true)
+  enableEmailNotifications Boolean @default(true)
+
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 }
