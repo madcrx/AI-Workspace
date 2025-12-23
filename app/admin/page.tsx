@@ -15,6 +15,8 @@ import Link from 'next/link';
 import MonetizationSettings from '@/components/admin/monetization-settings';
 import RevenueAnalytics from '@/components/admin/revenue-analytics';
 import BackendSettings from '@/components/admin/backend-settings';
+import DatabaseTools from '@/components/admin/database-tools';
+import DeveloperTools from '@/components/admin/developer-tools';
 
 interface Stats {
   totalUsers: number;
@@ -530,6 +532,8 @@ export default function AdminPage() {
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="scraper">Tool Scraper</TabsTrigger>
             <TabsTrigger value="monetization">Monetization</TabsTrigger>
+            <TabsTrigger value="database">Database</TabsTrigger>
+            <TabsTrigger value="developer">Developer</TabsTrigger>
             <TabsTrigger value="settings">Backend Settings</TabsTrigger>
             <TabsTrigger value="webtools">Web Tools</TabsTrigger>
           </TabsList>
@@ -1550,6 +1554,14 @@ export default function AdminPage() {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="database">
+            <DatabaseTools />
+          </TabsContent>
+
+          <TabsContent value="developer">
+            <DeveloperTools />
           </TabsContent>
 
           <TabsContent value="webtools">
