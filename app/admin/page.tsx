@@ -14,6 +14,10 @@ import { signOut } from 'next-auth/react';
 import Link from 'next/link';
 import MonetizationSettings from '@/components/admin/monetization-settings';
 import RevenueAnalytics from '@/components/admin/revenue-analytics';
+import BackendSettings from '@/components/admin/backend-settings';
+import DatabaseTools from '@/components/admin/database-tools';
+import DeveloperTools from '@/components/admin/developer-tools';
+import WebHostingSettings from '@/components/admin/webhosting-settings';
 
 interface Stats {
   totalUsers: number;
@@ -529,7 +533,10 @@ export default function AdminPage() {
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="scraper">Tool Scraper</TabsTrigger>
             <TabsTrigger value="monetization">Monetization</TabsTrigger>
+            <TabsTrigger value="database">Database</TabsTrigger>
+            <TabsTrigger value="developer">Developer</TabsTrigger>
             <TabsTrigger value="settings">Backend Settings</TabsTrigger>
+            <TabsTrigger value="webhosting">Web Hosting</TabsTrigger>
             <TabsTrigger value="webtools">Web Tools</TabsTrigger>
           </TabsList>
 
@@ -1230,6 +1237,11 @@ export default function AdminPage() {
                   <MonetizationSettings />
                 </div>
 
+                {/* Backend Configuration Settings */}
+                <div className="border-t pt-6">
+                  <BackendSettings />
+                </div>
+
                 {/* Video Clips Management */}
                 <div className="space-y-4 border-t pt-6">
                   <div className="flex items-center justify-between">
@@ -1544,6 +1556,18 @@ export default function AdminPage() {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="database">
+            <DatabaseTools />
+          </TabsContent>
+
+          <TabsContent value="developer">
+            <DeveloperTools />
+          </TabsContent>
+
+          <TabsContent value="webhosting">
+            <WebHostingSettings />
           </TabsContent>
 
           <TabsContent value="webtools">
