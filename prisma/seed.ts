@@ -2140,6 +2140,74 @@ async function main() {
 
   console.log(`✅ Created ${tutorials.length} tutorials with YouTube videos`);
 
+  // Create default affiliate programs
+  const affiliatePrograms = [
+    {
+      name: 'ChatGPT Plus',
+      provider: 'OpenAI',
+      affiliateNetwork: 'Direct',
+      commissionType: 'PER_SALE',
+      commissionRate: 20.0,
+      cookieDuration: 30,
+      trackingUrl: 'https://chat.openai.com/auth/login?ref=AFFILIATE_ID',
+      notes: 'ChatGPT Plus subscription affiliate program',
+    },
+    {
+      name: 'Midjourney Subscription',
+      provider: 'Midjourney Inc',
+      affiliateNetwork: 'Direct',
+      commissionType: 'PER_SALE',
+      commissionRate: 15.0,
+      cookieDuration: 30,
+      trackingUrl: 'https://www.midjourney.com/account/?ref=AFFILIATE_ID',
+      notes: 'Midjourney subscription referral program',
+    },
+    {
+      name: 'Jasper AI',
+      provider: 'Jasper',
+      affiliateNetwork: 'Impact',
+      commissionType: 'PER_SALE',
+      commissionRate: 30.0,
+      cookieDuration: 90,
+      trackingUrl: 'https://www.jasper.ai/?via=AFFILIATE_ID',
+      notes: '30% recurring commission on Jasper subscriptions',
+      minimumPayout: 50,
+      paymentSchedule: 'NET30',
+    },
+    {
+      name: 'ElevenLabs',
+      provider: 'ElevenLabs',
+      affiliateNetwork: 'Direct',
+      commissionType: 'PER_SALE',
+      commissionRate: 25.0,
+      cookieDuration: 30,
+      trackingUrl: 'https://elevenlabs.io/?ref=AFFILIATE_ID',
+      notes: 'Voice AI subscription affiliate program',
+    },
+    {
+      name: 'GitHub Copilot',
+      provider: 'GitHub',
+      affiliateNetwork: 'Direct',
+      commissionType: 'PER_SALE',
+      commissionRate: 10.0,
+      cookieDuration: 30,
+      trackingUrl: 'https://github.com/features/copilot?ref=AFFILIATE_ID',
+      notes: 'GitHub Copilot subscription referral',
+    },
+  ];
+
+  // Clear existing affiliate programs
+  await prisma.affiliateProgram.deleteMany({});
+
+  // Create affiliate programs
+  for (const program of affiliatePrograms) {
+    await prisma.affiliateProgram.create({
+      data: program,
+    });
+  }
+
+  console.log(`✅ Created ${affiliatePrograms.length} affiliate programs`);
+
   console.log('🎉 Database seeded successfully!');
 }
 
