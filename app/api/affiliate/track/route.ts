@@ -83,13 +83,33 @@ export async function PUT(request: NextRequest) {
       );
     }
 
+    // Get the click to access the affiliate program
+    const existingClick = await prisma.affiliateClick.findUnique({
+      where: { id: clickId },
+      include: { affiliateProgram: true },
+    });
+
+    if (!existingClick) {
+      return NextResponse.json(
+        { error: 'Click not found' },
+        { status: 404 }
+      );
+    }
+
+    // Calculate earned amount using program's costPerClick if not provided
+    const calculatedEarnedAmount = earnedAmount !== undefined
+      ? earnedAmount
+      : (converted && existingClick.affiliateProgram.costPerClick)
+        ? existingClick.affiliateProgram.costPerClick
+        : 0;
+
     // Update the click record
     const updatedClick = await prisma.affiliateClick.update({
       where: { id: clickId },
       data: {
         converted: converted || false,
         conversionValue,
-        earnedAmount: earnedAmount || 0,
+        earnedAmount: calculatedEarnedAmount,
         conversionDate: converted ? new Date() : null,
       },
       include: {
@@ -103,7 +123,7 @@ export async function PUT(request: NextRequest) {
         where: { id: updatedClick.affiliateProgramId },
         data: {
           totalConversions: { increment: 1 },
-          totalEarnings: { increment: earnedAmount || 0 },
+          totalEarnings: { increment: calculatedEarnedAmount },
         },
       });
     }
