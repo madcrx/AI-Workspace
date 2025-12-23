@@ -1232,16 +1232,6 @@ export default function AdminPage() {
                   <RevenueAnalytics />
                 </div>
 
-                {/* Monetization Backend Settings */}
-                <div className="border-t pt-6">
-                  <MonetizationSettings />
-                </div>
-
-                {/* Backend Configuration Settings */}
-                <div className="border-t pt-6">
-                  <BackendSettings />
-                </div>
-
                 {/* Video Clips Management */}
                 <div className="space-y-4 border-t pt-6">
                   <div className="flex items-center justify-between">
@@ -1436,85 +1426,14 @@ export default function AdminPage() {
                   </div>
                 </div>
 
-                {/* Environment Variables */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold border-b pb-2">Environment Configuration</h3>
-                  <div className="grid gap-4">
-                    <div className="p-4 border rounded-lg">
-                      <Label className="text-sm font-medium">NextAuth Configuration</Label>
-                      <div className="mt-2 space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Google OAuth</span>
-                          <Badge variant={process.env.GOOGLE_CLIENT_ID ? 'default' : 'secondary'}>
-                            {process.env.GOOGLE_CLIENT_ID ? 'Configured' : 'Not Set'}
-                          </Badge>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Facebook OAuth</span>
-                          <Badge variant={process.env.FACEBOOK_CLIENT_ID ? 'default' : 'secondary'}>
-                            {process.env.FACEBOOK_CLIENT_ID ? 'Configured' : 'Not Set'}
-                          </Badge>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">NextAuth Secret</span>
-                          <Badge variant={process.env.NEXTAUTH_SECRET ? 'default' : 'destructive'}>
-                            {process.env.NEXTAUTH_SECRET ? 'Set' : 'Missing'}
-                          </Badge>
-                        </div>
-                      </div>
-                    </div>
+                {/* Monetization Backend Settings */}
+                <div className="border-t pt-6">
+                  <MonetizationSettings />
+                </div>
 
-                    <div className="p-4 border rounded-lg">
-                      <Label className="text-sm font-medium">Database Configuration</Label>
-                      <div className="mt-2 space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Database URL</span>
-                          <Badge variant={process.env.DATABASE_URL ? 'default' : 'destructive'}>
-                            {process.env.DATABASE_URL ? 'Connected' : 'Not Set'}
-                          </Badge>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="p-4 border rounded-lg">
-                      <Label className="text-sm font-medium">Email / SMTP Configuration</Label>
-                      <div className="mt-2 space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">SMTP Host</span>
-                          <Badge variant={process.env.SMTP_HOST ? 'default' : 'secondary'}>
-                            {process.env.SMTP_HOST ? 'Configured' : 'Not Set'}
-                          </Badge>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">SMTP Port</span>
-                          <Badge variant={process.env.SMTP_PORT ? 'default' : 'secondary'}>
-                            {process.env.SMTP_PORT || 'Not Set'}
-                          </Badge>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">SMTP User</span>
-                          <Badge variant={process.env.SMTP_USER ? 'default' : 'secondary'}>
-                            {process.env.SMTP_USER ? 'Configured' : 'Not Set'}
-                          </Badge>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">SMTP Password</span>
-                          <Badge variant={process.env.SMTP_PASSWORD ? 'default' : 'destructive'}>
-                            {process.env.SMTP_PASSWORD ? 'Set' : 'Not Set'}
-                          </Badge>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">From Email</span>
-                          <Badge variant={process.env.EMAIL_FROM ? 'default' : 'secondary'}>
-                            {process.env.EMAIL_FROM || 'Not Set'}
-                          </Badge>
-                        </div>
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-3">
-                        Used for password reset emails, notifications, and system alerts
-                      </p>
-                    </div>
-                  </div>
+                {/* Backend Configuration Settings */}
+                <div className="border-t pt-6">
+                  <BackendSettings />
                 </div>
 
                 {/* Feature Flags */}
