@@ -44,7 +44,7 @@ export default function DatabaseTools() {
   const [status, setStatus] = useState<DatabaseStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [reseeding, setReseeding] = useState(false);
-  const [backing up, setBackingUp] = useState(false);
+  const [backingUp, setBackingUp] = useState(false);
   const [optimizing, setOptimizing] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
