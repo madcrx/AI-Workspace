@@ -37,6 +37,7 @@ model UserPreferences {
   notes         String     @default("")    // Notepad widget content
   todos         String     @default("[]")  // Todo widget items
   workspaceZoom Int        @default(100)   // Workspace zoom level (50-150)
+  notepadHeight Int        @default(300)   // Notepad widget height in pixels
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
 }
