@@ -18,6 +18,7 @@ import BackendSettings from '@/components/admin/backend-settings';
 import DatabaseTools from '@/components/admin/database-tools';
 import DeveloperTools from '@/components/admin/developer-tools';
 import WebHostingSettings from '@/components/admin/webhosting-settings';
+import AffiliateProgramsManager from '@/components/admin/affiliate-programs-manager';
 
 interface Stats {
   totalUsers: number;
@@ -1225,6 +1226,11 @@ export default function AdminPage() {
                       </ul>
                     </div>
                   </div>
+                </div>
+
+                {/* Affiliate Programs Cost Per Click */}
+                <div className="border-t pt-6">
+                  <AffiliateProgramsManager />
                 </div>
 
                 {/* Revenue Analytics Dashboard */}

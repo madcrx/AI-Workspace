@@ -322,6 +322,7 @@ model AffiliateProgram {
   affiliateNetwork  String?  // e.g., "Impact", "ShareASale", "Direct"
   commissionType    String   @default("PER_SALE") // PER_SALE, PER_CLICK, PERCENTAGE
   commissionRate    Float    // Percentage (e.g., 20.0 for 20%) or flat amount
+  costPerClick      Float?   @default(0) // Cost per click amount in dollars
   cookieDuration    Int?     // Cookie lifetime in days
   affiliateId       String?  // Your affiliate ID for this program
   apiKey            String?  // API key if available
