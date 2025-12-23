@@ -12,6 +12,8 @@ import { Label } from '@/components/ui/label';
 import { Users, Wrench, Clock, Eye, MousePointer, Layers, BarChart3, TrendingUp, LogOut } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import Link from 'next/link';
+import MonetizationSettings from '@/components/admin/monetization-settings';
+import RevenueAnalytics from '@/components/admin/revenue-analytics';
 
 interface Stats {
   totalUsers: number;
@@ -1141,8 +1143,8 @@ export default function AdminPage() {
                         <p className="text-sm text-muted-foreground mb-3">
                           Track clicks, conversions, and revenue from affiliate links
                         </p>
-                        <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
-                          Coming Soon
+                        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                          ✓ Active
                         </Badge>
                       </div>
 
@@ -1153,8 +1155,8 @@ export default function AdminPage() {
                         <p className="text-sm text-muted-foreground mb-3">
                           View detailed analytics on tutorial performance and earnings
                         </p>
-                        <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
-                          Coming Soon
+                        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                          ✓ Active
                         </Badge>
                       </div>
                     </div>
@@ -1216,6 +1218,16 @@ export default function AdminPage() {
                       </ul>
                     </div>
                   </div>
+                </div>
+
+                {/* Revenue Analytics Dashboard */}
+                <div className="border-t pt-6">
+                  <RevenueAnalytics />
+                </div>
+
+                {/* Monetization Backend Settings */}
+                <div className="border-t pt-6">
+                  <MonetizationSettings />
                 </div>
 
                 {/* Video Clips Management */}

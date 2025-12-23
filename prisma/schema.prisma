@@ -314,3 +314,93 @@ model VideoClick {
   earnedAmount    Float    @default(0) // Amount earned from this click
   createdAt       DateTime @default(now())
 }
+
+model AffiliateProgram {
+  id                String   @id @default(cuid())
+  name              String   // e.g., "ChatGPT Plus", "Midjourney"
+  provider          String   // e.g., "OpenAI", "Midjourney Inc"
+  affiliateNetwork  String?  // e.g., "Impact", "ShareASale", "Direct"
+  commissionType    String   @default("PER_SALE") // PER_SALE, PER_CLICK, PERCENTAGE
+  commissionRate    Float    // Percentage (e.g., 20.0 for 20%) or flat amount
+  cookieDuration    Int?     // Cookie lifetime in days
+  affiliateId       String?  // Your affiliate ID for this program
+  apiKey            String?  // API key if available
+  trackingUrl       String   // Base tracking URL template
+  isActive          Boolean  @default(true)
+  minimumPayout     Float?   // Minimum payout threshold
+  paymentSchedule   String?  // e.g., "NET30", "Monthly"
+  notes             String?
+  totalClicks       Int      @default(0)
+  totalConversions  Int      @default(0)
+  totalEarnings     Float    @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  affiliateClicks   AffiliateClick[]
+}
+
+model AffiliateClick {
+  id                String   @id @default(cuid())
+  affiliateProgramId String
+  affiliateProgram  AffiliateProgram @relation(fields: [affiliateProgramId], references: [id], onDelete: Cascade)
+  tutorialId        String?  // Which tutorial the click came from
+  userId            String?  // User who clicked (if logged in)
+  ipAddress         String?
+  userAgent         String?
+  referrer          String?
+  sessionId         String?
+  clickedUrl        String   // The affiliate link that was clicked
+  converted         Boolean  @default(false) // Did they complete a purchase/signup
+  conversionValue   Float?   // Value of the conversion
+  earnedAmount      Float    @default(0) // Commission earned
+  conversionDate    DateTime?
+  metadata          String?  @default("{}") // JSON for additional tracking data
+  createdAt         DateTime @default(now())
+
+  @@index([affiliateProgramId])
+  @@index([tutorialId])
+  @@index([sessionId])
+}
+
+model MonetizationSettings {
+  id                    String   @id @default(cuid())
+  // Payment Information
+  paypalEmail           String?
+  stripeAccountId       String?
+  bankAccountNumber     String?
+  bankRoutingNumber     String?
+  bankAccountName       String?
+
+  // Affiliate Network Credentials
+  impactPartnerId       String?
+  impactApiKey          String?
+  shareasaleAffiliateId String?
+  shareasaleApiToken    String?
+  cjPublisherId         String?
+  cjApiKey              String?
+
+  // Custom Affiliate IDs for major platforms
+  openaiAffiliateId     String?  // ChatGPT, DALL-E
+  anthropicAffiliateId  String?  // Claude
+  midjourneyAffiliateId String?
+  elevenLabsAffiliateId String?
+  jasperAffiliateId     String?
+
+  // Revenue Goals and Thresholds
+  monthlyRevenueGoal    Float?   @default(0)
+  minimumPayoutAmount   Float?   @default(50)
+
+  // Tax Information
+  taxId                 String?  // EIN or SSN
+  businessName          String?
+  businessAddress       String?
+
+  // Notification Settings
+  notificationEmail     String?
+  sendWeeklyReports     Boolean  @default(true)
+  sendMonthlyReports    Boolean  @default(true)
+  alertOnLargeConversion Boolean @default(true)
+  largeConversionThreshold Float? @default(100)
+
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}

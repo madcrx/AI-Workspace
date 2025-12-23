@@ -29,6 +29,7 @@ interface Tutorial {
 export default function TutorialDetailPage({ params }: { params: { slug: string } }) {
   const [tutorial, setTutorial] = useState<Tutorial | null>(null);
   const [loading, setLoading] = useState(true);
+  const [sessionId] = useState(() => Math.random().toString(36).substring(2));
 
   useEffect(() => {
     fetchTutorial();
@@ -43,6 +44,29 @@ export default function TutorialDetailPage({ params }: { params: { slug: string 
       console.error('Error fetching tutorial:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const trackAffiliateClick = async (link: { name: string; url: string }) => {
+    try {
+      // Track the click
+      await fetch('/api/affiliate/track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          affiliateProgramId: 'default', // This should be mapped to actual program
+          tutorialId: tutorial?.id,
+          clickedUrl: link.url,
+          sessionId,
+        }),
+      });
+
+      // Open the affiliate link
+      window.open(link.url, '_blank');
+    } catch (error) {
+      console.error('Error tracking affiliate click:', error);
+      // Still open the link even if tracking fails
+      window.open(link.url, '_blank');
     }
   };
 
@@ -165,7 +189,7 @@ export default function TutorialDetailPage({ params }: { params: { slug: string 
                         )}
                       </div>
                       <Button
-                        onClick={() => window.open(link.url, '_blank')}
+                        onClick={() => trackAffiliateClick(link)}
                         className="flex-shrink-0"
                       >
                         Get Deal
