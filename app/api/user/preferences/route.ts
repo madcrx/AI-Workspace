@@ -26,6 +26,7 @@ export async function GET(request: NextRequest) {
           notes: '',
           todos: '[]',
           workspaceZoom: 100,
+          notepadHeight: 300,
         },
       });
     }
@@ -36,6 +37,7 @@ export async function GET(request: NextRequest) {
       notes: preferences.notes || '',
       todos: JSON.parse(preferences.todos),
       workspaceZoom: preferences.workspaceZoom || 100,
+      notepadHeight: preferences.notepadHeight || 300,
     });
   } catch (error) {
     console.error('Error fetching user preferences:', error);
@@ -56,7 +58,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { widgets, theme, notes, todos, workspaceZoom } = body;
+    const { widgets, theme, notes, todos, workspaceZoom, notepadHeight } = body;
 
     const updateData: any = {};
     if (widgets !== undefined) {
@@ -74,6 +76,9 @@ export async function PUT(request: NextRequest) {
     if (workspaceZoom !== undefined) {
       updateData.workspaceZoom = workspaceZoom;
     }
+    if (notepadHeight !== undefined) {
+      updateData.notepadHeight = notepadHeight;
+    }
 
     const preferences = await prisma.userPreferences.upsert({
       where: { userId: session.user.id },
@@ -85,6 +90,7 @@ export async function PUT(request: NextRequest) {
         notes: notes || '',
         todos: todos ? JSON.stringify(todos) : '[]',
         workspaceZoom: workspaceZoom || 100,
+        notepadHeight: notepadHeight || 300,
       },
     });
 
@@ -94,6 +100,7 @@ export async function PUT(request: NextRequest) {
       notes: preferences.notes || '',
       todos: JSON.parse(preferences.todos),
       workspaceZoom: preferences.workspaceZoom || 100,
+      notepadHeight: preferences.notepadHeight || 300,
     });
   } catch (error) {
     console.error('Error updating user preferences:', error);
